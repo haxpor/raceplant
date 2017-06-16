@@ -3,7 +3,7 @@ package io.wasin.raceplant.states
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.utils.viewport.FitViewport
+import com.badlogic.gdx.utils.viewport.ExtendViewport
 import com.badlogic.gdx.utils.viewport.Viewport
 import io.wasin.raceplant.Game
 import io.wasin.raceplant.handlers.GameStateManager
@@ -64,7 +64,7 @@ abstract class GameState(gsm: GameStateManager) {
      * If needed to create a different type of viewport, then override and implement it in GameState class.
      */
     open protected fun setupViewport(cam: OrthographicCamera, hudCam: OrthographicCamera, viewportWidth: Float, viewportHeight: Float) {
-        camViewport = FitViewport(viewportWidth, viewportHeight, cam)
-        hudViewport = FitViewport(viewportWidth, viewportHeight, hudCam)
+        camViewport = ExtendViewport(viewportWidth, viewportHeight, cam)
+        hudViewport = ExtendViewport(viewportWidth, viewportHeight, hudCam)
     }
 }
