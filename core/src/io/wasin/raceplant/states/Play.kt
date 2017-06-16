@@ -9,6 +9,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
@@ -181,7 +182,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
             triggeredToMove = true
         }
 
-        if (BBInput.isControllerDown(BBInput.CONTROLLER_BUTTON_DOWN) ||
+        if (BBInput.isControllerDown(cindex, BBInput.CONTROLLER_BUTTON_DOWN) ||
                 (controller != null && controller.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player.y -= PLAYER_MOVE_SPEED * dt
@@ -197,6 +198,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
             triggeredToMove = true
         }
 
+        // place down seed if carrying
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY) {
+            println("place down")
+
+            // calculate position to place down seed
+            seeds.add(Seed(Game.res.getTexture("seed")!!,
+                    if (cindex == 0) player1CamTargetPosition.x else player2CamTargetPosition.x,
+                    if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
+            player.state = Player.State.IDLE
+        }
+
         // check if user didn't trigger to walk, then back to normal
         if (!triggeredToMove && player.state != Player.State.CARRY) {
             player.state = Player.State.IDLE
@@ -208,7 +220,6 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // update seeds
         for (i in seeds.count()-1 downTo 0 ) {
-            println(i)
             seeds[i].update(dt)
 
             // check if player take it

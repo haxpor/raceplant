@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Array
 /**
  * Created by haxpor on 6/17/17.
  */
-class Seed(texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
+class Seed(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
 
     companion object {
         const val SPRITE_SIZE: Int = 16
@@ -18,7 +18,6 @@ class Seed(texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
     // animation
     private var idleAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
-    var alive: Boolean = true
 
     init {
         // populate animations
@@ -30,7 +29,13 @@ class Seed(texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
             idleFrames.add(tmpFrames[0][col])
         }
         idleAnimation = Animation<TextureRegion>(1 / 7f, idleFrames, Animation.PlayMode.LOOP)
+
+        // place on input position
+        this.x = x
+        this.y = y
     }
+
+    constructor(texture: Texture): this(texture, 0f, 0f) {}
 
     fun update(dt: Float) {
         animationTimer += dt
