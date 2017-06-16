@@ -41,6 +41,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var player2CamTargetPosition: Vector3 = Vector3.Zero
 
     private var separatorTextureRegion: TextureRegion
+    private var scorehudTextureRegion: TextureRegion
     private var playerCameraUpdateRate: Float = 0.2f
 
     private var seeds: ArrayList<Seed> = ArrayList()
@@ -58,6 +59,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         val tex = Game.res.getTexture("separator")!!
         separatorTextureRegion = TextureRegion(tex, tex.width, tex.height)
+
+        val scorehudTex = Game.res.getTexture("scorehud")!!
+        scorehudTextureRegion = TextureRegion(scorehudTex, scorehudTex.width, scorehudTex.height)
 
         setupPlayer1Camera()
         setupPlayer2Camera()
@@ -252,12 +256,24 @@ class Play(gsm: GameStateManager): GameState(gsm){
         drawPlayer1Content()
         drawPlayer2Content()
 
-        // draw separator
+        drawHud()
+    }
+
+    private fun drawHud() {
         sb.projectionMatrix = hudCam.combined
         // set viewport back to normal
         Gdx.gl.glViewport(0,0,Gdx.graphics.width, Gdx.graphics.height)
+
         sb.begin()
+        // score hud
+        sb.projectionMatrix = hudCam.combined
+        // score hud - player 1
+        sb.draw(scorehudTextureRegion, 0f, hudCam.viewportHeight - scorehudTextureRegion.regionHeight, hudCam.viewportWidth/2f, scorehudTextureRegion.regionHeight.toFloat())
+        // score hud - player 2
+        sb.draw(scorehudTextureRegion, hudCam.viewportWidth/2 + 2f, hudCam.viewportHeight - scorehudTextureRegion.regionHeight, hudCam.viewportWidth/2f, scorehudTextureRegion.regionHeight.toFloat())
+        // draw separator
         sb.draw(separatorTextureRegion, hudCam.viewportWidth/2-separatorTextureRegion.regionWidth/2, 0f)
+
         sb.end()
     }
 

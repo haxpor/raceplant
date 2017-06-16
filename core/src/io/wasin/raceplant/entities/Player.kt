@@ -30,8 +30,11 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     private var carryAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
 
-    // internal operation
+    // public variables
     var state: State = State.IDLE
+    var treePlanted: Int = 0
+
+    // internal operation
     private var faceRight: Boolean = true
 
     init {
@@ -104,5 +107,9 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
         if (state != State.CARRY) {
             state = State.WALK
         }
+    }
+
+    fun increaseTreePlanted() {
+        treePlanted++
     }
 }
