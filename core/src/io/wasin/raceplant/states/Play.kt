@@ -97,105 +97,100 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     override fun handleInput(dt: Float) {
-        handlePlayer1Input(dt)
-        handlePlayer2Input(dt)
+        handlePlayerInput(player1, dt)
+        handlePlayerInput(player2, dt)
     }
 
-    private fun handlePlayer1Input(dt: Float) {
+    private fun handlePlayerInput(player: Player, dt: Float) {
+
+        // check to assign and process against a correct controller
+        var controller = BBInput.controller1
+        var cindex = 0
+
+        if (player == player1) {
+            controller = BBInput.controller1
+            cindex = 0
+        }
+        else if (player == player2) {
+            controller = BBInput.controller2
+            cindex = 1
+        }
+        else {
+            return
+        }
+
         var triggeredToMove = false
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_LEFT) ||
-                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
+        if (BBInput.isControllerDown(cindex, BBInput.CONTROLLER_BUTTON_LEFT) ||
+                (controller != null && controller.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
             // update player position
-            player1.x -= PLAYER_MOVE_SPEED * dt
+            player.x -= PLAYER_MOVE_SPEED * dt
             // update camera position
-            player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(-1f, 0f))
-            // change to walk state
-            player1.setState(Player.State.WALK)
+            if (cindex == 0) {
+                player1CamTargetPosition = calculateNewCameraPosition(player, Vector2(-1f, 0f))
+            }
+            else if (cindex == 1) {
+                player2CamTargetPosition = calculateNewCameraPosition(player, Vector2(-1f, 0f))
+            }
+            // walk
+            player.walk()
             // set facing direction
-            player1.faceLeft()
+            player.faceLeft()
             triggeredToMove = true
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
-                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
+        if (BBInput.isControllerDown(cindex, BBInput.CONTROLLER_BUTTON_RIGHT) ||
+                (controller != null && controller.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
             // update player position
-            player1.x += PLAYER_MOVE_SPEED * dt
+            player.x += PLAYER_MOVE_SPEED * dt
             // update camera position
-            player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(1f, 0f))
-            // change to walk state
-            player1.setState(Player.State.WALK)
+            if (cindex == 0) {
+                player1CamTargetPosition = calculateNewCameraPosition(player, Vector2(1f, 0f))
+            }
+            else if (cindex == 1) {
+                player2CamTargetPosition = calculateNewCameraPosition(player, Vector2(1f, 0f))
+            }
+            // walk
+            player.walk()
             // set facing direction
-            player1.faceRight()
+            player.faceRight()
             triggeredToMove = true
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_UP) ||
-                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
+        if (BBInput.isControllerDown(cindex, BBInput.CONTROLLER_BUTTON_UP) ||
+                (controller != null && controller.getAxis(Xbox.L_STICK_VERTICAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
             // update player position
-            player1.y += PLAYER_MOVE_SPEED * dt
+            player.y += PLAYER_MOVE_SPEED * dt
             // update camera position
-            player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, 1f))
-            // change to walk state
-            player1.setState(Player.State.WALK)
+            if (cindex == 0) {
+                player1CamTargetPosition = calculateNewCameraPosition(player, Vector2(0f, 1f))
+            }
+            else if (cindex == 1) {
+                player2CamTargetPosition = calculateNewCameraPosition(player, Vector2(0f, 1f))
+            }
+            // walk
+            player1.walk()
             triggeredToMove = true
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
-                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
+        if (BBInput.isControllerDown(BBInput.CONTROLLER_BUTTON_DOWN) ||
+                (controller != null && controller.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
             // update player position
-            player1.y -= PLAYER_MOVE_SPEED * dt
+            player.y -= PLAYER_MOVE_SPEED * dt
             // update camera position
-            player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, -1f))
-            // change to walk state
-            player1.setState(Player.State.WALK)
+            if (cindex == 0) {
+                player1CamTargetPosition = calculateNewCameraPosition(player, Vector2(0f, -1f))
+            }
+            else if (cindex == 1) {
+                player2CamTargetPosition = calculateNewCameraPosition(player, Vector2(0f, -1f))
+            }
+            // walk
+            player.walk()
             triggeredToMove = true
         }
 
         // check if user didn't trigger to walk, then back to normal
-        if (!triggeredToMove) {
-            player1.setState(Player.State.IDLE)
-        }
-    }
-
-    private fun handlePlayer2Input(dt: Float) {
-        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_LEFT) ||
-                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
-            // update player position
-            player2.x -= PLAYER_MOVE_SPEED * dt
-            // update camera position
-            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(-1f, 0f))
-            // change to walk state
-            player2.setState(Player.State.WALK)
-        }
-
-        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
-                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
-            // update player position
-            player2.x += PLAYER_MOVE_SPEED * dt
-            // update camera position
-            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(1f, 0f))
-            // change to walk state
-            player2.setState(Player.State.WALK)
-        }
-
-        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_UP) ||
-                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
-            // update player position
-            player2.y += PLAYER_MOVE_SPEED * dt
-            // update camera position
-            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, 1f))
-            // change to walk state
-            player2.setState(Player.State.WALK)
-        }
-
-        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
-                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
-            // update player position
-            player2.y -= PLAYER_MOVE_SPEED * dt
-            // update camera position
-            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, -1f))
-            // change to walk state
-            player2.setState(Player.State.WALK)
+        if (!triggeredToMove && player.state != Player.State.CARRY) {
+            player.state = Player.State.IDLE
         }
     }
 

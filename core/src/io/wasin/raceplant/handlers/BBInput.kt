@@ -86,11 +86,13 @@ class BBInput {
         fun isMouseDown(i: Int): Boolean {
             return mouseKeys[i]
         }
-        fun isController1Down(i: Int): Boolean {
-            return controller1Keys[i]
-        }
-        fun isController2Down(i: Int): Boolean {
-            return controller2Keys[i]
+        fun isControllerDown(cindex: Int, i: Int): Boolean {
+            if (cindex == 0) {
+                return controller1Keys[i]
+            }
+            else {
+                return controller2Keys[i]
+            }
         }
 
         /** isPressed - specific **/
@@ -100,11 +102,13 @@ class BBInput {
         fun isMousePressed(i: Int): Boolean {
             return mouseKeys[i] && !pMouseKeys[i]
         }
-        fun isController1Pressed(i: Int): Boolean {
-            return controller1Keys[i] && !pController1Keys[i]
-        }
-        fun isController2Pressed(i: Int): Boolean {
-            return controller2Keys[i] && !pController2Keys[i]
+        fun isControllerPressed(cindex: Int, i: Int): Boolean {
+            if (cindex == 0) {
+                return controller1Keys[i] && !pController1Keys[i]
+            }
+            else {
+                return controller2Keys[i] && !pController2Keys[i]
+            }
         }
 
         /** setKey **/
@@ -114,11 +118,13 @@ class BBInput {
         fun setMouseKey(i: Int, b: Boolean) {
             mouseKeys[i] = b
         }
-        fun setController1Key(i: Int, b: Boolean) {
-            controller1Keys[i] = b
-        }
-        fun setController2Key(i: Int, b: Boolean) {
-            controller2Keys[i] = b
+        fun setControllerKey(cindex: Int, i: Int, b: Boolean) {
+            if (cindex == 0) {
+                controller1Keys[i] = b
+            }
+            else {
+                controller2Keys[i] = b
+            }
         }
 
         /** isDown **/
@@ -128,11 +134,13 @@ class BBInput {
         fun isMouseDown(): Boolean {
             return mouseDown
         }
-        fun isController1Down(): Boolean {
-            return controller1Down
-        }
-        fun isController2Down(): Boolean {
-            return controller2Down
+        fun isControllerDown(cindex: Int): Boolean {
+            if (cindex == 0) {
+                return controller1Down
+            }
+            else {
+                return controller2Down
+            }
         }
 
         /** isPressed **/
@@ -142,11 +150,13 @@ class BBInput {
         fun isMousePressed(): Boolean {
             return mouseDown && !pMouseDown
         }
-        fun isController1Pressed(): Boolean {
-            return controller1Down && !pController1Down
-        }
-        fun isController2Pressed(): Boolean {
-            return controller2Down && !pController2Down
+        fun isControllerPressed(cindex: Int): Boolean {
+            if (cindex == 0) {
+                return controller1Down && !pController1Down
+            }
+            else {
+                return controller2Down && !pController2Down
+            }
         }
 
         /** isReleased **/
@@ -156,11 +166,13 @@ class BBInput {
         fun isMouseReleased(): Boolean {
             return pMouseDown && !mouseDown
         }
-        fun isController1Released(): Boolean {
-            return pController1Down && !controller1Down
-        }
-        fun isController2Released(): Boolean {
-            return pController2Down && !controller2Down
+        fun isControllerReleased(cindex: Int): Boolean {
+            if (cindex == 0) {
+                return pController1Down && !controller1Down
+            }
+            else {
+                return pController2Down && !controller2Down
+            }
         }
     }
 }

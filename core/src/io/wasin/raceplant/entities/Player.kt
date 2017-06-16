@@ -17,15 +17,17 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // animations
     private var idleAnimation: Animation<TextureRegion>
     private var walkAnimation: Animation<TextureRegion>
+    private var carryAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
 
-    // internal oeration
-    private var state: State = State.IDLE
+    // internal operation
+    var state: State = State.IDLE
     private var faceRight: Boolean = true
 
     enum class State {
         IDLE,
-        WALK
+        WALK,
+        CARRY
     }
 
     companion object {
@@ -49,6 +51,13 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             walkFrames.add(tmpFrames[0][col])
         }
         walkAnimation = Animation<TextureRegion>(1 / 7f, walkFrames, Animation.PlayMode.LOOP)
+
+        // carry
+        var carryFrames = Array<TextureRegion>()
+        for (col in 6..9) {
+            carryFrames.add(tmpFrames[0][col])
+        }
+        carryAnimation = Animation<TextureRegion>(1 / 7f, carryFrames, Animation.PlayMode.LOOP)
     }
 
     fun update(dt: Float) {
@@ -62,6 +71,9 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             }
             state == State.WALK -> {
                 currentFrameRegion = walkAnimation.getKeyFrame(animationTimer)
+            }
+            state == State.CARRY -> {
+                currentFrameRegion = carryAnimation.getKeyFrame(animationTimer)
             }
         }
 
@@ -78,15 +90,18 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
         }
     }
 
-    fun setState(state: State) {
-        this.state = state
-    }
-
     fun faceLeft() {
         faceRight = false
     }
 
     fun faceRight() {
         faceRight = true
+    }
+
+    // take into account if player is carrying at the moment, thus player will walk while carrying
+    fun walk() {
+        if (state != State.CARRY) {
+            state = State.WALK
+        }
     }
 }

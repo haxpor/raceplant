@@ -112,3 +112,6 @@ gradle-app.setting
 ## OS Specific
 .DS_Store
 Thumbs.db
+
+## Aseprite source files
+*.ase
