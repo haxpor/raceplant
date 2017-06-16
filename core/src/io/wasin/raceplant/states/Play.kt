@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
@@ -46,6 +48,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private var seeds: ArrayList<Seed> = ArrayList()
 
+    private var font: BitmapFont = BitmapFont()
+    private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
+    private var player2ScoreGlyph: GlyphLayout = GlyphLayout()
+
     companion object {
         const val PLAYER_MOVE_SPEED = 50.0f
         const val PLAYER_CAM_AHEAD_OFFSET = 30f  // ahead distance to move player's camera at
@@ -69,6 +75,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         setupPlayer1()
         setupPlayer2()
 
+        setupGlyphs()
+
         // TODO: Remove these mocking ups when done
         player1.x = 50f
         player1.y = 50f
@@ -84,6 +92,11 @@ class Play(gsm: GameStateManager): GameState(gsm){
         seed.x = 150f
         seed.y = 150f
         seeds.add(seed)
+    }
+
+    private fun setupGlyphs() {
+        player1ScoreGlyph.setText(font, "${player1.treePlanted}")
+        player2ScoreGlyph.setText(font, "${player2.treePlanted}")
     }
 
     private fun setupPlayer1Camera() {
@@ -204,7 +217,6 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // place down seed if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY) {
-            println("place down")
 
             // calculate position to place down seed
             seeds.add(Seed(Game.res.getTexture("seed")!!,
@@ -269,8 +281,12 @@ class Play(gsm: GameStateManager): GameState(gsm){
         sb.projectionMatrix = hudCam.combined
         // score hud - player 1
         sb.draw(scorehudTextureRegion, 0f, hudCam.viewportHeight - scorehudTextureRegion.regionHeight, hudCam.viewportWidth/2f, scorehudTextureRegion.regionHeight.toFloat())
+        // score hud - player 1's score
+        font.draw(sb, player1ScoreGlyph, hudCam.viewportWidth/4 - player1ScoreGlyph.width/2, hudCam.viewportHeight - player1ScoreGlyph.height/2)
         // score hud - player 2
         sb.draw(scorehudTextureRegion, hudCam.viewportWidth/2 + 2f, hudCam.viewportHeight - scorehudTextureRegion.regionHeight, hudCam.viewportWidth/2f, scorehudTextureRegion.regionHeight.toFloat())
+        // score hud - player 2's score
+        font.draw(sb, player1ScoreGlyph, hudCam.viewportWidth/4*3 - player2ScoreGlyph.width/2, hudCam.viewportHeight - player2ScoreGlyph.height/2)
         // draw separator
         sb.draw(separatorTextureRegion, hudCam.viewportWidth/2-separatorTextureRegion.regionWidth/2, 0f)
 
