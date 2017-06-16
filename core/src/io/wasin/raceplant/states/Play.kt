@@ -102,12 +102,16 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     private fun handlePlayer1Input(dt: Float) {
+        var triggeredToMove = false
         if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_LEFT) ||
                 (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player1.x -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(-1f, 0f))
+            // change to walk state
+            player1.setState(Player.State.WALK)
+            triggeredToMove = true
         }
 
         if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
@@ -116,6 +120,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player1.x += PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(1f, 0f))
+            // change to walk state
+            player1.setState(Player.State.WALK)
+            triggeredToMove = true
         }
 
         if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_UP) ||
@@ -124,6 +131,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player1.y += PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, 1f))
+            // change to walk state
+            player1.setState(Player.State.WALK)
+            triggeredToMove = true
         }
 
         if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
@@ -132,6 +142,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player1.y -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, -1f))
+            // change to walk state
+            player1.setState(Player.State.WALK)
+            triggeredToMove = true
+        }
+
+        // check if user didn't trigger to walk, then back to normal
+        if (!triggeredToMove) {
+            player1.setState(Player.State.IDLE)
         }
     }
 
@@ -142,6 +160,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2.x -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(-1f, 0f))
+            // change to walk state
+            player2.setState(Player.State.WALK)
         }
 
         if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
@@ -150,6 +170,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2.x += PLAYER_MOVE_SPEED * dt
             // update camera position
             player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(1f, 0f))
+            // change to walk state
+            player2.setState(Player.State.WALK)
         }
 
         if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_UP) ||
@@ -158,6 +180,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2.y += PLAYER_MOVE_SPEED * dt
             // update camera position
             player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, 1f))
+            // change to walk state
+            player2.setState(Player.State.WALK)
         }
 
         if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
@@ -166,11 +190,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2.y -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, -1f))
+            // change to walk state
+            player2.setState(Player.State.WALK)
         }
     }
 
     override fun update(dt: Float) {
         handleInput(dt)
+
+        // update players
+        player1.update(dt)
+        player2.update(dt)
 
         // update player 1 and 2 camera
         player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
