@@ -18,6 +18,7 @@ class Seed(texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
     // animation
     private var idleAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
+    var alive: Boolean = true
 
     init {
         // populate animations

@@ -101,11 +101,6 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // take into account if player is carrying at the moment, thus player will walk while carrying
     fun walk() {
 
-        if (state != State.WALK) {
-            // reset animation timer here for sanity
-            animationTimer = 0f
-        }
-
         if (state != State.CARRY) {
             state = State.WALK
         }

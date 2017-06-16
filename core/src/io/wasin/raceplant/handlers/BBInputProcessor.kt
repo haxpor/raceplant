@@ -192,7 +192,6 @@ class BBInputProcessor : InputAdapter(), ControllerListener {
     override fun axisMoved(controller: Controller?, axisCode: Int, value: Float): Boolean {
         // ignore axis
         // no need to return false to let other system handle it further
-        println(value)
         return true
     }
 

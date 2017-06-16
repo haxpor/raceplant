@@ -207,7 +207,20 @@ class Play(gsm: GameStateManager): GameState(gsm){
         handleInput(dt)
 
         // update seeds
-        seeds.forEach { it.update(dt) }
+        for (i in seeds.count()-1 downTo 0 ) {
+            println(i)
+            seeds[i].update(dt)
+
+            // check if player take it
+            if (seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                player1.state = Player.State.CARRY
+                seeds.removeAt(i)
+            }
+            else if (seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                player2.state = Player.State.CARRY
+                seeds.removeAt(i)
+            }
+        }
 
         // update players
         player1.update(dt)
