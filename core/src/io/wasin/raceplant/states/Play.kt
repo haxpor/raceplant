@@ -111,6 +111,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(-1f, 0f))
             // change to walk state
             player1.setState(Player.State.WALK)
+            // set facing direction
+            player1.faceLeft()
             triggeredToMove = true
         }
 
@@ -122,6 +124,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(1f, 0f))
             // change to walk state
             player1.setState(Player.State.WALK)
+            // set facing direction
+            player1.faceRight()
             triggeredToMove = true
         }
 

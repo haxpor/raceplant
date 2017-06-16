@@ -21,6 +21,7 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
 
     // internal oeration
     private var state: State = State.IDLE
+    private var faceRight: Boolean = true
 
     enum class State {
         IDLE,
@@ -67,9 +68,25 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
         if (currentFrameRegion != null) {
             setRegion(currentFrameRegion!!)
         }
+
+        // update flip x-direction
+        if (faceRight) {
+            flip(false, isFlipY)
+        }
+        else {
+            flip(true, isFlipY)
+        }
     }
 
     fun setState(state: State) {
         this.state = state
+    }
+
+    fun faceLeft() {
+        faceRight = false
+    }
+
+    fun faceRight() {
+        faceRight = true
     }
 }
