@@ -37,6 +37,7 @@ class Game : ApplicationAdapter() {
         playerSaveFileManager = PlayerSaveFileManager(Settings.PLAYER_SAVEFILE_RELATIVE_PATH)
 
         // TODO: Load resource here...
+        res.loadTexture("ui/separator.png", "separator")
 
         // only this time to check for controller
         // if user plug in controller after this then they have to restart the game
