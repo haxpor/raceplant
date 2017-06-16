@@ -12,6 +12,16 @@ import com.badlogic.gdx.utils.Array
  */
 class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
 
+    enum class State {
+        IDLE,
+        WALK,
+        CARRY
+    }
+
+    companion object {
+        const val SPRITE_SIZE: Int = 16
+    }
+
     var frontVector: Vector2 = Vector2(1f, 0f)
 
     // animations
@@ -23,16 +33,6 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // internal operation
     var state: State = State.IDLE
     private var faceRight: Boolean = true
-
-    enum class State {
-        IDLE,
-        WALK,
-        CARRY
-    }
-
-    companion object {
-        const val SPRITE_SIZE: Int = 16
-    }
 
     init {
         // populate animations
@@ -100,6 +100,12 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
 
     // take into account if player is carrying at the moment, thus player will walk while carrying
     fun walk() {
+
+        if (state != State.WALK) {
+            // reset animation timer here for sanity
+            animationTimer = 0f
+        }
+
         if (state != State.CARRY) {
             state = State.WALK
         }

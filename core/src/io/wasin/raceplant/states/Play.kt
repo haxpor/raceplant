@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
 import io.wasin.raceplant.entities.Player
+import io.wasin.raceplant.entities.Seed
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 
@@ -41,6 +42,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var separatorTextureRegion: TextureRegion
     private var playerCameraUpdateRate: Float = 0.2f
 
+    private var seeds: ArrayList<Seed> = ArrayList()
+
     companion object {
         const val PLAYER_MOVE_SPEED = 50.0f
         const val PLAYER_CAM_AHEAD_OFFSET = 30f  // ahead distance to move player's camera at
@@ -61,7 +64,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         setupPlayer1()
         setupPlayer2()
 
-        // mocking up
+        // TODO: Remove these mocking ups when done
         player1.x = 50f
         player1.y = 50f
 
@@ -70,6 +73,12 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2.x = 100f
         player2.y = 100f
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
+
+        // TODO: Remove this mocking up of seed when done
+        val seed = Seed(Game.res.getTexture("seed")!!)
+        seed.x = 150f
+        seed.y = 150f
+        seeds.add(seed)
     }
 
     private fun setupPlayer1Camera() {
@@ -197,6 +206,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
     override fun update(dt: Float) {
         handleInput(dt)
 
+        // update seeds
+        seeds.forEach { it.update(dt) }
+
         // update players
         player1.update(dt)
         player2.update(dt)
@@ -238,9 +250,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // draw anything else for player 1
         sb.begin()
+
+        // seeds
+        seeds.forEach { it.draw(sb) }
+
+        // player
         player1.draw(sb)
 
-        // draw opponent
+        // opponent
         player2.draw(sb)
 
         sb.end()
@@ -260,9 +277,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // draw anything else for player 2
         sb.begin()
+
+        // seeds
+        seeds.forEach { it.draw(sb) }
+
+        // player
         player2.draw(sb)
 
-        // draw opponent
+        // opponent
         player1.draw(sb)
 
         sb.end()
