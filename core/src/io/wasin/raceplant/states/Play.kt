@@ -10,6 +10,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
+import io.wasin.raceplant.entities.Player
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 
@@ -28,6 +29,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
     lateinit private var player2Cam: OrthographicCamera
     lateinit private var player2Viewport: ExtendViewport
 
+    lateinit private var player1: Player
+    lateinit private var player2: Player
+
     private var separatorTextureRegion: TextureRegion
 
     init {
@@ -40,6 +44,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         setupPlayer1Camera()
         setupPlayer2Camera()
+
+        setupPlayer1()
+        setupPlayer2()
     }
 
     private fun setupPlayer1Camera() {
@@ -58,32 +65,35 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2Viewport = ExtendViewport(Game.V_WIDTH/2, Game.V_HEIGHT, player2Cam)
     }
 
+    private fun setupPlayer1() {
+        player1 = Player(1, Game.res.getTexture("player1")!!)
+        player1.x = 50f
+        player1.y = 50f
+    }
+
+    private fun setupPlayer2() {
+        player2 = Player(2, Game.res.getTexture("player2")!!)
+        player2.x = 100f
+        player2.y = 100f
+    }
+
     override fun handleInput() {
     }
 
     override fun update(dt: Float) {
         handleInput()
 
+        // TODO: Update position of player 1 and 2 here, then update camera
+        player1Cam.update()
+        player2Cam.update()
     }
 
     override fun render() {
         // clear screen
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        sb.projectionMatrix = player1Cam.combined
-        sb.begin()
-
-        // draw player 1
-        Gdx.gl.glViewport(0,0,Gdx.graphics.width/2, Gdx.graphics.height)
-        tmr.setView(player1Cam)
-        tmr.render()
-
-        // draw player 2
-        Gdx.gl.glViewport(Gdx.graphics.width/2,0,Gdx.graphics.width/2, Gdx.graphics.height)
-        tmr.setView(player2Cam)
-        tmr.render()
-
-        sb.end()
+        drawPlayer1Content()
+        drawPlayer2Content()
 
         // draw separator
         sb.projectionMatrix = hudCam.combined
@@ -92,6 +102,52 @@ class Play(gsm: GameStateManager): GameState(gsm){
         sb.begin()
         sb.draw(separatorTextureRegion, hudCam.viewportWidth/2-separatorTextureRegion.regionWidth/2, 0f)
         sb.end()
+    }
+
+    private fun drawPlayer1Content() {
+        sb.projectionMatrix = player1Cam.combined
+
+        // -- draw section for player 1 --
+        // draw tilemap for player 1
+        sb.begin()
+        Gdx.gl.glViewport(0,0,Gdx.graphics.width/2, Gdx.graphics.height)
+        tmr.setView(player1Cam)
+        tmr.render()
+        sb.end()
+
+        // draw anything else for player 1
+        sb.begin()
+        player1.draw(sb)
+
+        // draw opponent
+        sb.projectionMatrix = player2Cam.combined
+        player2.draw(sb)
+
+        sb.end()
+        // -- end of drawing section for player 1 --
+    }
+
+    private fun drawPlayer2Content() {
+        sb.projectionMatrix = player2Cam.combined
+
+        // -- draw section for player 2 --
+        // draw tilemap for player 2
+        sb.begin()
+        Gdx.gl.glViewport(Gdx.graphics.width/2,0,Gdx.graphics.width/2, Gdx.graphics.height)
+        tmr.setView(player2Cam)
+        tmr.render()
+        sb.end()
+
+        // draw anything else for player 2
+        sb.begin()
+        player2.draw(sb)
+
+        // draw opponent
+        sb.projectionMatrix = player1Cam.combined
+        player1.draw(sb)
+
+        sb.end()
+        // -- end of drawing section for player 2 --
     }
 
     override fun dispose() {

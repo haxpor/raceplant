@@ -38,6 +38,8 @@ class Game : ApplicationAdapter() {
 
         // TODO: Load resource here...
         res.loadTexture("ui/separator.png", "separator")
+        res.loadTexture("ui/player1.png", "player1")
+        res.loadTexture("ui/player2.png", "player2")
 
         // only this time to check for controller
         // if user plug in controller after this then they have to restart the game
