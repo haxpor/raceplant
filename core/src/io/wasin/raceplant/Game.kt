@@ -52,17 +52,16 @@ class Game : ApplicationAdapter() {
     }
 
     private fun setupTwoControllers() {
-        if (Controllers.getControllers().count() == 1) {
+        if (Controllers.getControllers().count() == 2) {
             val bbInputProcessor = Gdx.input.inputProcessor as BBInputProcessor
 
             val firstController = Controllers.getControllers().first()
             firstController.addListener(bbInputProcessor)
             BBInput.controller1 = firstController
 
-            // TODO: uncomment this when we have controller 2
-            //val secondController = Controllers.getControllers().last()
-            //secondController.addListener(bbInputProcessor)
-            //BBInput.controller2 = secondController
+            val secondController = Controllers.getControllers().last()
+            secondController.addListener(bbInputProcessor)
+            BBInput.controller2 = secondController
         }
     }
 

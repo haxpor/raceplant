@@ -1,6 +1,7 @@
 package io.wasin.raceplant.states
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -35,7 +36,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     lateinit private var player2: Player
 
     private var player1CamTargetPosition: Vector3 = Vector3.Zero
-    private var player2CamTargetPosiiton: Vector3 = Vector3.Zero
+    private var player2CamTargetPosition: Vector3 = Vector3.Zero
 
     private var separatorTextureRegion: TextureRegion
     private var playerCameraUpdateRate: Float = 0.2f
@@ -43,6 +44,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     companion object {
         const val PLAYER_MOVE_SPEED = 50.0f
         const val PLAYER_CAM_AHEAD_OFFSET = 30f  // ahead distance to move player's camera at
+        const val CONTROLLER_DEADZONE_VALUE = 0.3f
     }
 
     init {
@@ -67,7 +69,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         player2.x = 100f
         player2.y = 100f
-        player2CamTargetPosiiton.set(player2.x, player2.y, 0f)
+        player2CamTargetPosition.set(player2.x, player2.y, 0f)
     }
 
     private fun setupPlayer1Camera() {
@@ -96,35 +98,74 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     override fun handleInput(dt: Float) {
         handlePlayer1Input(dt)
+        handlePlayer2Input(dt)
     }
 
     private fun handlePlayer1Input(dt: Float) {
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_LEFT)) {
+        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_LEFT) ||
+                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player1.x -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(-1f, 0f))
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_RIGHT)) {
+        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
+                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player1.x += PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(1f, 0f))
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_UP)) {
+        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_UP) ||
+                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player1.y += PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, 1f))
         }
 
-        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_DOWN)) {
+        if (BBInput.isController1Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
+                (BBInput.controller1 != null && BBInput.controller1!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
             // update player position
             player1.y -= PLAYER_MOVE_SPEED * dt
             // update camera position
             player1CamTargetPosition = calculateNewCameraPosition(player1, Vector2(0f, -1f))
+        }
+    }
+
+    private fun handlePlayer2Input(dt: Float) {
+        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_LEFT) ||
+                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
+            // update player position
+            player2.x -= PLAYER_MOVE_SPEED * dt
+            // update camera position
+            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(-1f, 0f))
+        }
+
+        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_RIGHT) ||
+                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_HORIZONTAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
+            // update player position
+            player2.x += PLAYER_MOVE_SPEED * dt
+            // update camera position
+            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(1f, 0f))
+        }
+
+        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_UP) ||
+                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) < -CONTROLLER_DEADZONE_VALUE)) {
+            // update player position
+            player2.y += PLAYER_MOVE_SPEED * dt
+            // update camera position
+            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, 1f))
+        }
+
+        if (BBInput.isController2Down(BBInput.CONTROLLER_BUTTON_DOWN) ||
+                (BBInput.controller2 != null && BBInput.controller2!!.getAxis(Xbox.L_STICK_VERTICAL_AXIS) > CONTROLLER_DEADZONE_VALUE)) {
+            // update player position
+            player2.y -= PLAYER_MOVE_SPEED * dt
+            // update camera position
+            player2CamTargetPosition = calculateNewCameraPosition(player2, Vector2(0f, -1f))
         }
     }
 
@@ -134,6 +175,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // update player 1 and 2 camera
         player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
         player1Cam.update()
+
+        player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
         player2Cam.update()
     }
 
