@@ -112,59 +112,111 @@ class BBInputProcessor : InputAdapter(), ControllerListener {
     /** Contrllers **/
     override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
 
-        // only consider for active controller
         // return false to allow other system to handle event too
-        if (controller != BBInput.controller || controller == null) return false
+        if (controller != BBInput.controller1 && controller != BBInput.controller2 || controller == null) return false
 
-        BBInput.controllerDown = true
+        // check which controller to work with
+        if (controller == BBInput.controller1) {
+            BBInput.controller1Down = true
 
-        // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
-        if (buttonCode == Xbox.B) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_1, true)
+            // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
+            if (buttonCode == Xbox.B) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_1, true)
+            }
+            if (buttonCode == Xbox.A) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_2, true)
+            }
+            if (buttonCode == Xbox.DPAD_LEFT) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_LEFT, true)
+            }
+            if (buttonCode == Xbox.DPAD_RIGHT) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_RIGHT, true)
+            }
+            if (buttonCode == Xbox.DPAD_UP) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_UP, true)
+            }
+            if (buttonCode == Xbox.DPAD_DOWN) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_DOWN, true)
+            }
         }
-        if (buttonCode == Xbox.A) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_2, true)
+        // check which controller to work with
+        else if (controller == BBInput.controller2) {
+            BBInput.controller2Down = true
+
+            // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
+            if (buttonCode == Xbox.B) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_1, true)
+            }
+            if (buttonCode == Xbox.A) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_2, true)
+            }
+            if (buttonCode == Xbox.DPAD_LEFT) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_LEFT, true)
+            }
+            if (buttonCode == Xbox.DPAD_RIGHT) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_RIGHT, true)
+            }
+            if (buttonCode == Xbox.DPAD_UP) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_UP, true)
+            }
+            if (buttonCode == Xbox.DPAD_DOWN) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_DOWN, true)
+            }
         }
-        if (buttonCode == Xbox.DPAD_LEFT) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_LEFT, true)
-        }
-        if (buttonCode == Xbox.DPAD_RIGHT) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_RIGHT, true)
-        }
-        if (buttonCode == Xbox.DPAD_UP) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_UP, true)
-        }
-        if (buttonCode == Xbox.DPAD_DOWN) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_DOWN, true)
-        }
+
         return true
     }
 
     override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean {
-        // only consider for active controller
         // return false to allow other system to handle event too
-        if (controller != BBInput.controller || controller == null) return false
+        if (controller != BBInput.controller1 && controller != BBInput.controller2 || controller == null) return false
 
-        BBInput.controllerDown = false
+        // check which controller to work with
+        if (controller == BBInput.controller1) {
+            BBInput.controller1Down = false
 
-        // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
-        if (buttonCode == Xbox.B) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_1, false)
+            // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
+            if (buttonCode == Xbox.B) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_1, false)
+            }
+            if (buttonCode == Xbox.A) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_2, false)
+            }
+            if (buttonCode == Xbox.DPAD_LEFT) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_LEFT, false)
+            }
+            if (buttonCode == Xbox.DPAD_RIGHT) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_RIGHT, false)
+            }
+            if (buttonCode == Xbox.DPAD_UP) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_UP, false)
+            }
+            if (buttonCode == Xbox.DPAD_DOWN) {
+                BBInput.setController1Key(BBInput.CONTROLLER_BUTTON_DOWN, false)
+            }
         }
-        if (buttonCode == Xbox.A) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_2, false)
-        }
-        if (buttonCode == Xbox.DPAD_LEFT) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_LEFT, false)
-        }
-        if (buttonCode == Xbox.DPAD_RIGHT) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_RIGHT, false)
-        }
-        if (buttonCode == Xbox.DPAD_UP) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_UP, false)
-        }
-        if (buttonCode == Xbox.DPAD_DOWN) {
-            BBInput.setControllerKey(BBInput.CONTROLLER_BUTTON_DOWN, false)
+        else if (controller == BBInput.controller2) {
+            BBInput.controller2Down = false
+
+            // TODO: we fix to use xbox360 layout for mapping here, if *you* have time add configuration for user to map key and let the game use that configuration file
+            if (buttonCode == Xbox.B) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_1, false)
+            }
+            if (buttonCode == Xbox.A) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_2, false)
+            }
+            if (buttonCode == Xbox.DPAD_LEFT) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_LEFT, false)
+            }
+            if (buttonCode == Xbox.DPAD_RIGHT) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_RIGHT, false)
+            }
+            if (buttonCode == Xbox.DPAD_UP) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_UP, false)
+            }
+            if (buttonCode == Xbox.DPAD_DOWN) {
+                BBInput.setController2Key(BBInput.CONTROLLER_BUTTON_DOWN, false)
+            }
         }
         return true
     }
@@ -197,10 +249,11 @@ class BBInputProcessor : InputAdapter(), ControllerListener {
 
         if (controller == null) return
 
-        // only consider only one controller
-        // consecutive controller won't be effect for this game
-        if (BBInput.controller == null) {
-            BBInput.controller = controller
+        if (BBInput.controller1 == null) {
+            BBInput.controller1 = controller
+        }
+        else if (BBInput.controller2 == null) {
+            BBInput.controller2 = controller
         }
     }
 
@@ -210,15 +263,25 @@ class BBInputProcessor : InputAdapter(), ControllerListener {
 
         if (controller == null) return
 
-        if (BBInput.controller == controller && BBInput.controller != null) {
+        if (BBInput.controller1 == controller && BBInput.controller1 != null) {
             // remove previous listener
-            BBInput.controller!!.removeListener(this)
+            BBInput.controller1!!.removeListener(this)
             // reset controller
-            BBInput.controller = null
+            BBInput.controller1 = null
+        }
+
+        if (BBInput.controller2 == controller && BBInput.controller2 != null) {
+            // remove previous listener
+            BBInput.controller2!!.removeListener(this)
+            // reset controller
+            BBInput.controller2 = null
         }
     }
 
-    fun setActiveController(controller: Controller) {
-        BBInput.controller = controller
+    fun setController1(controller: Controller) {
+        BBInput.controller1 = controller
+    }
+    fun setContorller2(controller: Controller) {
+        BBInput.controller2 = controller
     }
 }

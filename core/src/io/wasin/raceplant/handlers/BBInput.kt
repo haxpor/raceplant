@@ -17,10 +17,14 @@ class BBInput {
         var mouseDown: Boolean = false
         var pMouseDown: Boolean = false
 
-        var controllerDown: Boolean = false
-        var pControllerDown: Boolean = false
+        var controller1Down: Boolean = false
+        var pController1Down: Boolean = false
 
-        var controller: Controller? = null
+        var controller2Down: Boolean = false
+        var pController2Down: Boolean = false
+
+        var controller1: Controller? = null
+        var controller2: Controller? = null
 
         const val NUM_KEYS: Int = 6
         const val BUTTON1: Int = 0
@@ -48,14 +52,18 @@ class BBInput {
         var mouseKeys: Array<Boolean> = Array<Boolean>(NUM_MOUSE_KEYS, { i -> false})
         var pMouseKeys: Array<Boolean> = Array<Boolean>(NUM_MOUSE_KEYS, { i -> false})
 
-        var controllerKeys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
-        var pControllerKeys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
+        var controller1Keys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
+        var pController1Keys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
+
+        var controller2Keys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
+        var pController2Keys: Array<Boolean> = Array<Boolean>(NUM_CONTROLLER_KEYS, { i -> false})
 
         fun update() {
             // update previous down
             pdown = down
             pMouseDown = mouseDown
-            pControllerDown = controllerDown
+            pController1Down = controller1Down
+            pController2Down = controller2Down
 
             for (i in 0..NUM_KEYS-1) {
                 pkeys[i] = keys[i]
@@ -66,7 +74,8 @@ class BBInput {
             }
 
             for (i in 0..NUM_CONTROLLER_KEYS-1) {
-                pControllerKeys[i] = controllerKeys[i]
+                pController1Keys[i] = controller1Keys[i]
+                pController2Keys[i] = controller2Keys[i]
             }
         }
 
@@ -77,8 +86,11 @@ class BBInput {
         fun isMouseDown(i: Int): Boolean {
             return mouseKeys[i]
         }
-        fun isControllerDown(i: Int): Boolean {
-            return controllerKeys[i]
+        fun isController1Down(i: Int): Boolean {
+            return controller1Keys[i]
+        }
+        fun isController2Down(i: Int): Boolean {
+            return controller2Keys[i]
         }
 
         /** isPressed - specific **/
@@ -88,8 +100,11 @@ class BBInput {
         fun isMousePressed(i: Int): Boolean {
             return mouseKeys[i] && !pMouseKeys[i]
         }
-        fun isControllerPressed(i: Int): Boolean {
-            return controllerKeys[i] && !pControllerKeys[i]
+        fun isController1Pressed(i: Int): Boolean {
+            return controller1Keys[i] && !pController1Keys[i]
+        }
+        fun isController2Pressed(i: Int): Boolean {
+            return controller2Keys[i] && !pController2Keys[i]
         }
 
         /** setKey **/
@@ -99,8 +114,11 @@ class BBInput {
         fun setMouseKey(i: Int, b: Boolean) {
             mouseKeys[i] = b
         }
-        fun setControllerKey(i: Int, b: Boolean) {
-            controllerKeys[i] = b
+        fun setController1Key(i: Int, b: Boolean) {
+            controller1Keys[i] = b
+        }
+        fun setController2Key(i: Int, b: Boolean) {
+            controller2Keys[i] = b
         }
 
         /** isDown **/
@@ -110,8 +128,11 @@ class BBInput {
         fun isMouseDown(): Boolean {
             return mouseDown
         }
-        fun isControllerDown(): Boolean {
-            return controllerDown
+        fun isController1Down(): Boolean {
+            return controller1Down
+        }
+        fun isController2Down(): Boolean {
+            return controller2Down
         }
 
         /** isPressed **/
@@ -121,8 +142,11 @@ class BBInput {
         fun isMousePressed(): Boolean {
             return mouseDown && !pMouseDown
         }
-        fun isControllerPressed(): Boolean {
-            return controllerDown && !pControllerDown
+        fun isController1Pressed(): Boolean {
+            return controller1Down && !pController1Down
+        }
+        fun isController2Pressed(): Boolean {
+            return controller2Down && !pController2Down
         }
 
         /** isReleased **/
@@ -132,8 +156,11 @@ class BBInput {
         fun isMouseReleased(): Boolean {
             return pMouseDown && !mouseDown
         }
-        fun isControllerReleased(): Boolean {
-            return pControllerDown && !controllerDown
+        fun isController1Released(): Boolean {
+            return pController1Down && !controller1Down
+        }
+        fun isController2Released(): Boolean {
+            return pController2Down && !controller2Down
         }
     }
 }

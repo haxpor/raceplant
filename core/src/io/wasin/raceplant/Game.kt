@@ -41,20 +41,28 @@ class Game : ApplicationAdapter() {
         res.loadTexture("ui/player1.png", "player1")
         res.loadTexture("ui/player2.png", "player2")
 
-        // only this time to check for controller
-        // if user plug in controller after this then they have to restart the game
-        setupFirstActiveController()
+        // set up both controllers
+        // WARNING: You have to have 2 controllers connected before the launch of the game
+        // to be able to recognize both of controllers
+        // if something went wrong just restart the game
+        setupTwoControllers()
 
         // set to begin with Play state
         gsm.pushState(GameStateManager.PLAY)
     }
 
-    private fun setupFirstActiveController() {
-        if (Controllers.getControllers().count() > 0) {
+    private fun setupTwoControllers() {
+        if (Controllers.getControllers().count() == 1) {
             val bbInputProcessor = Gdx.input.inputProcessor as BBInputProcessor
-            val controller = Controllers.getControllers().first()
-            controller.addListener(bbInputProcessor)
-            bbInputProcessor.setActiveController(controller)
+
+            val firstController = Controllers.getControllers().first()
+            firstController.addListener(bbInputProcessor)
+            BBInput.controller1 = firstController
+
+            // TODO: uncomment this when we have controller 2
+            //val secondController = Controllers.getControllers().last()
+            //secondController.addListener(bbInputProcessor)
+            //BBInput.controller2 = secondController
         }
     }
 

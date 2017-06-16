@@ -31,7 +31,7 @@ abstract class GameState(gsm: GameStateManager) {
         hudViewport.update(Gdx.app.graphics.width, Gdx.app.graphics.height, true)
     }
 
-    abstract fun handleInput()
+    abstract fun handleInput(dt: Float)
     abstract fun update(dt: Float)
     abstract fun render()
     abstract fun dispose()
