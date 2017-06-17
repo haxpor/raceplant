@@ -52,6 +52,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var fruits: ArrayList<Fruit> = ArrayList()
     private var trees: ArrayList<Tree> = ArrayList()
     private var buckets: ArrayList<Bucket> = ArrayList()
+    private var waterdrops: ArrayList<WaterDrop> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -283,7 +284,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
             for (tree in trees) {
                 val (colChk, rowChk) = convertPositionToTilePosition(Vector2(tree.x, tree.y))
                 if (colChk == col && rowChk == row) {
-                    // TODO: add water effect here at the tree's position
+                    waterdrops.add(WaterDrop(Game.res.getTexture("waterdrop")!!, tree.x, tree.y))
 
                     // water is used then show empty bucket
                     buckets.add(Bucket(Game.res.getTexture("bucket")!!, tree.x, tree.y, Bucket.State.EMPTY))
@@ -374,6 +375,15 @@ class Play(gsm: GameStateManager): GameState(gsm){
             }
         }
 
+        // update waterdrops
+        for (i in waterdrops.count()-1 downTo 0) {
+            waterdrops[i].update(dt)
+
+            if (!waterdrops[i].isAlive) {
+                waterdrops.removeAt(i)
+            }
+        }
+
         // update trees
         trees.forEach { it.update(dt) }
 
@@ -448,6 +458,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         fruits.forEach { it.draw(sb) }
         // buckets
         buckets.forEach { it.draw(sb) }
+        // waterdrops
+        waterdrops.forEach { it.draw(sb) }
 
         // player
         player1.draw(sb)
@@ -481,6 +493,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         fruits.forEach { it.draw(sb) }
         // buckets
         buckets.forEach { it.draw(sb) }
+        // waterdrops
+        waterdrops.forEach { it.draw(sb) }
 
         // player
         player2.draw(sb)

@@ -45,6 +45,7 @@ class Game : ApplicationAdapter() {
         res.loadTexture("ui/damage-ball.png", "damageball")
         res.loadTexture("ui/tree.png", "tree")
         res.loadTexture("ui/bucket.png", "bucket")
+        res.loadTexture("ui/waterdrop-effect.png", "waterdrop")
 
         // set up both controllers
         // WARNING: You have to have 2 controllers connected before the launch of the game
