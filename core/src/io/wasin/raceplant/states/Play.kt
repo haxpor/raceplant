@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -18,10 +17,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
-import io.wasin.raceplant.entities.Fruit
-import io.wasin.raceplant.entities.Player
-import io.wasin.raceplant.entities.Seed
-import io.wasin.raceplant.entities.Tree
+import io.wasin.raceplant.entities.*
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 
@@ -55,6 +51,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var seeds: ArrayList<Seed> = ArrayList()
     private var fruits: ArrayList<Fruit> = ArrayList()
     private var trees: ArrayList<Tree> = ArrayList()
+    private var buckets: ArrayList<Bucket> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -103,6 +100,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // TODO: Remove this mocking up of placing damage ball for player 1 to use
         fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
+
+        // TODO: Remove this mocking up of placing buckets for two player when we don't need it
+        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 220f, Bucket.State.EMPTY))
+        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.FULL))
     }
 
     private fun setupGlyphs() {
@@ -257,7 +258,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player.state = Player.State.IDLE
         }
         // place down fruit if carrying
-        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_DAMAGEBALL) {
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_FRUIT) {
 
             // calculate position to place down seed
             fruits.add(Fruit(Game.res.getTexture("damageball")!!,
@@ -265,9 +266,44 @@ class Play(gsm: GameStateManager): GameState(gsm){
                     if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
             player.state = Player.State.IDLE
         }
+        // place down bucket if carrying
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
+                (player.state == Player.State.CARRY_EMPTYBUCKET || player.state == Player.State.CARRY_FULLBUCKET)) {
+
+            // calculate position to place bucket on tile
+            // this position is used to check against planted tree on tile
+            val bucketToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
+                Vector2(player2CamTargetPosition.x, player2CamTargetPosition.y)
+
+            // check bucket against tile whether to add water-humid effect
+            val (col, row) = convertPositionToTilePosition(bucketToPlacePos)
+
+            // search for all trees whether which one is exactly that col,row
+            var isFoundMatchingTree = false
+            for (tree in trees) {
+                val (colChk, rowChk) = convertPositionToTilePosition(Vector2(tree.x, tree.y))
+                if (colChk == col && rowChk == row) {
+                    // TODO: add water effect here at the tree's position
+
+                    // water is used then show empty bucket
+                    buckets.add(Bucket(Game.res.getTexture("bucket")!!, tree.x, tree.y, Bucket.State.EMPTY))
+                    isFoundMatchingTree = true
+                    break
+                }
+            }
+
+            // if not found matching tree then, add back original state of bucket to the world
+            // check the original state from player (carrying)
+            if (!isFoundMatchingTree) {
+                buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y,
+                        if (player.state == Player.State.CARRY_EMPTYBUCKET) Bucket.State.EMPTY else Bucket.State.FULL))
+            }
+
+            player.state = Player.State.IDLE
+        }
 
         // check if user didn't trigger to walk, then back to normal
-        if (!triggeredToMove && player.state != Player.State.CARRY_SEED && player.state != Player.State.CARRY_DAMAGEBALL) {
+        if (!triggeredToMove && !player.isCarry()) {
             player.state = Player.State.IDLE
         }
     }
@@ -298,12 +334,43 @@ class Play(gsm: GameStateManager): GameState(gsm){
             // check if player take the seed
             // also check if player has picked up something already
             if (!player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
-                player1.state = Player.State.CARRY_DAMAGEBALL
+                player1.state = Player.State.CARRY_FRUIT
                 fruits.removeAt(i)
             }
             else if (!player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
-                player2.state = Player.State.CARRY_DAMAGEBALL
+                player2.state = Player.State.CARRY_FRUIT
                 fruits.removeAt(i)
+            }
+        }
+
+        // update buckets
+        for (i in buckets.count()-1 downTo 0) {
+            buckets[i].update(dt)
+
+            // check if player take the bucket
+            if (!player1.isCarry() && buckets[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+
+                // it depends on the state of bucket
+                if (buckets[i].state == Bucket.State.EMPTY) {
+                    player1.state = Player.State.CARRY_EMPTYBUCKET
+                }
+                else if (buckets[i].state == Bucket.State.FULL) {
+                    player1.state = Player.State.CARRY_FULLBUCKET
+                }
+
+                buckets.removeAt(i)
+            }
+            else if (!player2.isCarry() && buckets[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+
+                // it depends on the state of bucket
+                if (buckets[i].state == Bucket.State.EMPTY) {
+                    player2.state = Player.State.CARRY_EMPTYBUCKET
+                }
+                else if (buckets[i].state == Bucket.State.FULL) {
+                    player2.state = Player.State.CARRY_FULLBUCKET
+                }
+
+                buckets.removeAt(i)
             }
         }
 
@@ -379,6 +446,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         seeds.forEach { it.draw(sb) }
         // damage balls
         fruits.forEach { it.draw(sb) }
+        // buckets
+        buckets.forEach { it.draw(sb) }
 
         // player
         player1.draw(sb)
@@ -410,6 +479,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         seeds.forEach { it.draw(sb) }
         // damage balls
         fruits.forEach { it.draw(sb) }
+        // buckets
+        buckets.forEach { it.draw(sb) }
 
         // player
         player2.draw(sb)

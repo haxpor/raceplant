@@ -16,7 +16,9 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
         IDLE,
         WALK,
         CARRY_SEED,
-        CARRY_DAMAGEBALL
+        CARRY_FRUIT,
+        CARRY_EMPTYBUCKET,
+        CARRY_FULLBUCKET
     }
 
     companion object {
@@ -30,6 +32,8 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     private var walkAnimation: Animation<TextureRegion>
     private var carrySeedAnimation: Animation<TextureRegion>
     private var carryDBallAnimation: Animation<TextureRegion>
+    private var carryEmptyBucketAnimation: Animation<TextureRegion>
+    private var carryFullBucketAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
 
     // public variables
@@ -70,6 +74,20 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             carryDBallFrames.add(tmpFrames[0][col])
         }
         carryDBallAnimation = Animation<TextureRegion>(1 / 7f, carryDBallFrames, Animation.PlayMode.LOOP)
+
+        // carry empty bucket
+        var carryEmptyBucketFrames = Array<TextureRegion>()
+        for (col in 14..17) {
+            carryEmptyBucketFrames.add(tmpFrames[0][col])
+        }
+        carryEmptyBucketAnimation = Animation<TextureRegion>(1 / 7f, carryEmptyBucketFrames, Animation.PlayMode.LOOP)
+
+        // carry full bucket
+        var carryFullBucketFrames = Array<TextureRegion>()
+        for (col in 18..21) {
+            carryFullBucketFrames.add(tmpFrames[0][col])
+        }
+        carryFullBucketAnimation = Animation<TextureRegion>(1 / 7f, carryFullBucketFrames, Animation.PlayMode.LOOP)
     }
 
     fun update(dt: Float) {
@@ -87,8 +105,14 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             state == State.CARRY_SEED -> {
                 currentFrameRegion = carrySeedAnimation.getKeyFrame(animationTimer)
             }
-            state == State.CARRY_DAMAGEBALL -> {
+            state == State.CARRY_FRUIT -> {
                 currentFrameRegion = carryDBallAnimation.getKeyFrame(animationTimer)
+            }
+            state == State.CARRY_EMPTYBUCKET -> {
+                currentFrameRegion = carryEmptyBucketAnimation.getKeyFrame(animationTimer)
+            }
+            state == State.CARRY_FULLBUCKET -> {
+                currentFrameRegion = carryFullBucketAnimation.getKeyFrame(animationTimer)
             }
         }
 
@@ -116,7 +140,7 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // take into account if player is carrying at the moment, thus player will walk while carrying
     fun walk() {
 
-        if (state != State.CARRY_SEED && state != State.CARRY_DAMAGEBALL) {
+        if (!isCarry()) {
             state = State.WALK
         }
     }
@@ -127,7 +151,9 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
 
     fun isCarry(): Boolean {
         if (state == State.CARRY_SEED ||
-                state == State.CARRY_DAMAGEBALL) {
+                state == State.CARRY_FRUIT ||
+                state == State.CARRY_EMPTYBUCKET ||
+                state == State.CARRY_FULLBUCKET) {
             return true
         }
         else {
