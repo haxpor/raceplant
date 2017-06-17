@@ -15,7 +15,8 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     enum class State {
         IDLE,
         WALK,
-        CARRY
+        CARRY_SEED,
+        CARRY_DAMAGEBALL
     }
 
     companion object {
@@ -27,7 +28,8 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // animations
     private var idleAnimation: Animation<TextureRegion>
     private var walkAnimation: Animation<TextureRegion>
-    private var carryAnimation: Animation<TextureRegion>
+    private var carrySeedAnimation: Animation<TextureRegion>
+    private var carryDBallAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
 
     // public variables
@@ -55,12 +57,19 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
         }
         walkAnimation = Animation<TextureRegion>(1 / 7f, walkFrames, Animation.PlayMode.LOOP)
 
-        // carry
+        // carry seed
         var carryFrames = Array<TextureRegion>()
         for (col in 6..9) {
             carryFrames.add(tmpFrames[0][col])
         }
-        carryAnimation = Animation<TextureRegion>(1 / 7f, carryFrames, Animation.PlayMode.LOOP)
+        carrySeedAnimation = Animation<TextureRegion>(1 / 7f, carryFrames, Animation.PlayMode.LOOP)
+
+        // carry dball
+        var carryDBallFrames = Array<TextureRegion>()
+        for (col in 10..13) {
+            carryDBallFrames.add(tmpFrames[0][col])
+        }
+        carryDBallAnimation = Animation<TextureRegion>(1 / 7f, carryDBallFrames, Animation.PlayMode.LOOP)
     }
 
     fun update(dt: Float) {
@@ -75,8 +84,11 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             state == State.WALK -> {
                 currentFrameRegion = walkAnimation.getKeyFrame(animationTimer)
             }
-            state == State.CARRY -> {
-                currentFrameRegion = carryAnimation.getKeyFrame(animationTimer)
+            state == State.CARRY_SEED -> {
+                currentFrameRegion = carrySeedAnimation.getKeyFrame(animationTimer)
+            }
+            state == State.CARRY_DAMAGEBALL -> {
+                currentFrameRegion = carryDBallAnimation.getKeyFrame(animationTimer)
             }
         }
 
@@ -104,7 +116,7 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // take into account if player is carrying at the moment, thus player will walk while carrying
     fun walk() {
 
-        if (state != State.CARRY) {
+        if (state != State.CARRY_SEED && state != State.CARRY_DAMAGEBALL) {
             state = State.WALK
         }
     }

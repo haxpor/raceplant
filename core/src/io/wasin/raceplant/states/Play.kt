@@ -16,6 +16,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
+import io.wasin.raceplant.entities.DamageBall
 import io.wasin.raceplant.entities.Player
 import io.wasin.raceplant.entities.Seed
 import io.wasin.raceplant.handlers.BBInput
@@ -47,6 +48,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var playerCameraUpdateRate: Float = 0.2f
 
     private var seeds: ArrayList<Seed> = ArrayList()
+    private var damageBalls: ArrayList<DamageBall> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -92,6 +94,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
         seed.x = 150f
         seed.y = 150f
         seeds.add(seed)
+
+        // TODO: Remove this mocking up of placing damage ball for player 1 to use
+        damageBalls.add(DamageBall(Game.res.getTexture("damageball")!!, 200f, 200f))
     }
 
     private fun setupGlyphs() {
@@ -216,7 +221,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         }
 
         // place down seed if carrying
-        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY) {
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_SEED) {
 
             // calculate position to place down seed
             seeds.add(Seed(Game.res.getTexture("seed")!!,
@@ -224,9 +229,18 @@ class Play(gsm: GameStateManager): GameState(gsm){
                     if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
             player.state = Player.State.IDLE
         }
+        // place down damage ball if carrying
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_DAMAGEBALL) {
+
+            // calculate position to place down seed
+            damageBalls.add(DamageBall(Game.res.getTexture("damageball")!!,
+                    if (cindex == 0) player1CamTargetPosition.x else player2CamTargetPosition.x,
+                    if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
+            player.state = Player.State.IDLE
+        }
 
         // check if user didn't trigger to walk, then back to normal
-        if (!triggeredToMove && player.state != Player.State.CARRY) {
+        if (!triggeredToMove && player.state != Player.State.CARRY_SEED && player.state != Player.State.CARRY_DAMAGEBALL) {
             player.state = Player.State.IDLE
         }
     }
@@ -238,14 +252,29 @@ class Play(gsm: GameStateManager): GameState(gsm){
         for (i in seeds.count()-1 downTo 0 ) {
             seeds[i].update(dt)
 
-            // check if player take it
+            // check if player take the seed
             if (seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
-                player1.state = Player.State.CARRY
+                player1.state = Player.State.CARRY_SEED
                 seeds.removeAt(i)
             }
             else if (seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
-                player2.state = Player.State.CARRY
+                player2.state = Player.State.CARRY_SEED
                 seeds.removeAt(i)
+            }
+        }
+
+        // update damageballs
+        for (i in damageBalls.count()-1 downTo 0 ) {
+            damageBalls[i].update(dt)
+
+            // check if player take the seed
+            if (damageBalls[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                player1.state = Player.State.CARRY_DAMAGEBALL
+                damageBalls.removeAt(i)
+            }
+            else if (damageBalls[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                player2.state = Player.State.CARRY_DAMAGEBALL
+                damageBalls.removeAt(i)
             }
         }
 
@@ -309,6 +338,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // seeds
         seeds.forEach { it.draw(sb) }
+        // damage balls
+        damageBalls.forEach { it.draw(sb) }
 
         // player
         player1.draw(sb)
@@ -336,6 +367,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // seeds
         seeds.forEach { it.draw(sb) }
+        // damage balls
+        damageBalls.forEach { it.draw(sb) }
 
         // player
         player2.draw(sb)
