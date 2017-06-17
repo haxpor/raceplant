@@ -1,16 +1,16 @@
 package io.wasin.raceplant.entities
 
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.Animation
-import com.badlogic.gdx.graphics.g2d.Sprite
-import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.graphics.g2d.*
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.Array
+import io.wasin.raceplant.handlers.Settings
+import java.text.DecimalFormat
 
 /**
  * Created by haxpor on 6/17/17.
  */
-class Tree(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
+class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
 
     companion object {
         const val SPRITE_WIDTH: Int = 32
@@ -25,6 +25,12 @@ class Tree(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, 
 
     private var state: State = State.GROW_STEP_1
     private var randomFlipX: Boolean = false
+
+    private var growthTimeout: Float = Settings.GROWTH_TO_LEVEL_2_DURATION.toFloat()
+
+    private var font: BitmapFont = font
+    private var timeleftGlyph: GlyphLayout = GlyphLayout()
+    private var decimalFormat: DecimalFormat = DecimalFormat("#00")
 
     enum class State {
         GROW_STEP_1,
@@ -65,7 +71,7 @@ class Tree(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, 
         randomFlipX = MathUtils.randomBoolean()
     }
 
-    constructor(texture: Texture): this(texture, 0f, 0f) {}
+    constructor(texture: Texture, font: BitmapFont): this(texture, font, 0f, 0f) {}
 
     fun update(dt: Float) {
         animationTimer += dt
@@ -88,19 +94,62 @@ class Tree(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, 
             setRegion(currentFrameRegion!!)
         }
 
+        // then draw time left until growing into next level text
+        // - need to go to level 2
+        if (state == State.GROW_STEP_1) {
+            growthTimeout -= dt
+
+            val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(growthTimeout.toInt())
+            timeleftGlyph.setText(font, "$minutes:" + decimalFormat.format(seconds))
+
+            if (growthTimeout <= 0f) {
+                // change state to next level
+                growIntoStep2()
+            }
+        }
+        // - need to go to level 3
+        else if (state == State.GROW_STEP_2) {
+            growthTimeout -= dt
+
+            val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(growthTimeout.toInt())
+            timeleftGlyph.setText(font, "$minutes:" + decimalFormat.format(seconds))
+
+            if (growthTimeout <= 0f) {
+                // change state to next level
+                growIntoStep3()
+            }
+        }
+
         // update flip x-direction from randomization
         flip(false, isFlipY)
     }
 
     fun growIntoStep1() {
         state = State.GROW_STEP_1
+        growthTimeout = Settings.GROWTH_TO_LEVEL_2_DURATION.toFloat()
     }
 
     fun growIntoStep2() {
         state = State.GROW_STEP_2
+        growthTimeout = Settings.GROWTH_TO_LEVEL_3_DURATION.toFloat()
     }
 
     fun growIntoStep3() {
         state = State.GROW_STEP_3
+    }
+
+    override fun draw(batch: Batch?) {
+        super.draw(batch)
+
+        // we have no need to show text in level 3 (reached top level)
+        if (state != State.GROW_STEP_3) {
+            font.draw(batch, timeleftGlyph, x, y - 10f - timeleftGlyph.height / 2f)
+        }
+    }
+
+    private fun convertSecondsToMinuteAndRemainingSeconds(seconds: Int): Pair<Int, Int>  {
+        val minutes = Math.floor(seconds.toDouble() / 60.0).toInt()
+        val remainingSeconds = seconds.rem(60)
+        return Pair(minutes, remainingSeconds)
     }
 }

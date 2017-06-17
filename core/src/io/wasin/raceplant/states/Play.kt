@@ -243,7 +243,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 Gdx.app.log("Play", "Seeds planted at $col,$row")
 
                 val plantSlotPos = convertTileIndexIntoPosition(col, row)
-                val tree = Tree(Game.res.getTexture("tree")!!, plantSlotPos.x, plantSlotPos.y)
+                val tree = Tree(Game.res.getTexture("tree")!!, font, plantSlotPos.x, plantSlotPos.y)
                 trees.add(tree)
             }
                 // otherwise place the seed on the tile normally
