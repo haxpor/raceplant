@@ -249,7 +249,24 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 Gdx.app.log("Play", "Seeds planted at $col,$row")
 
                 val plantSlotPos = convertTileIndexIntoPosition(col, row)
-                val tree = Tree(Game.res.getTexture("tree")!!, font, plantSlotPos.x, plantSlotPos.y)
+                val tree = Tree(Game.res.getTexture("tree")!!, font, plantSlotPos.x, plantSlotPos.y,
+                        {
+                            // callback to give both fruit and seed
+                            Gdx.app.log("Play", "Tree generated a new fruit and a seed")
+
+                            // create a new fruit
+                            val fruit = Fruit(Game.res.getTexture("damageball")!!,
+                                    it.x + MathUtils.random(-it.width/2f, it.width/2),
+                                    it.y - MathUtils.random(0f, it.width/2f))
+                            fruits.add(fruit)
+
+                            // create a new seed
+                            val seed = Seed(Game.res.getTexture("seed")!!,
+                                    it.x + MathUtils.random(-it.width/2f, it.width/2),
+                                    it.y - MathUtils.random(0f, it.width/2f))
+                            seeds.add(seed)
+                        }
+                )
                 trees.add(tree)
             }
                 // otherwise place the seed on the tile normally

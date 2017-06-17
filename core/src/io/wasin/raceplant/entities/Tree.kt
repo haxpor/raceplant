@@ -10,7 +10,7 @@ import java.text.DecimalFormat
 /**
  * Created by haxpor on 6/17/17.
  */
-class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
+class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, fruitGeneratedCallback: ((Tree) -> Unit)?): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
 
     companion object {
         const val SPRITE_WIDTH: Int = 32
@@ -31,6 +31,9 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(textu
     private var font: BitmapFont = font
     private var timeleftGlyph: GlyphLayout = GlyphLayout()
     private var decimalFormat: DecimalFormat = DecimalFormat("#00")
+
+    private var fruitGenerationTimeout: Float = Settings.FRUIT_GENERATION_COOLDOWN.toFloat()
+    private var fruitGenerationCallback: ((Tree) -> Unit)? = fruitGeneratedCallback
 
     enum class State {
         GROW_STEP_1,
@@ -71,7 +74,7 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(textu
         randomFlipX = MathUtils.randomBoolean()
     }
 
-    constructor(texture: Texture, font: BitmapFont): this(texture, font, 0f, 0f) {}
+    constructor(texture: Texture, font: BitmapFont): this(texture, font, 0f, 0f, null) {}
 
     fun update(dt: Float) {
         animationTimer += dt
@@ -119,6 +122,21 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(textu
                 growIntoStep3()
             }
         }
+            // generate fruit periodically
+        else if (state == State.GROW_STEP_3) {
+            fruitGenerationTimeout -= dt
+
+            val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(growthTimeout.toInt())
+            timeleftGlyph.setText(font, "$seconds")
+
+            if (fruitGenerationTimeout < 0f) {
+                // restart generation again
+                fruitGenerationTimeout = Settings.FRUIT_GENERATION_COOLDOWN.toFloat()
+
+                // trigger callback
+                fruitGenerationCallback?.invoke(this)
+            }
+        }
 
         // update flip x-direction from randomization
         flip(false, isFlipY)
@@ -141,8 +159,10 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(textu
     override fun draw(batch: Batch?) {
         super.draw(batch)
 
-        // we have no need to show text in level 3 (reached top level)
-        if (state != State.GROW_STEP_3) {
+        if (state == State.GROW_STEP_3) {
+            font.draw(batch, timeleftGlyph, x + width/2 - 5f, y - 10f - timeleftGlyph.height / 2f)
+        }
+        else {
             font.draw(batch, timeleftGlyph, x, y - 10f - timeleftGlyph.height / 2f)
         }
     }
