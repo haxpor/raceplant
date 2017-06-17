@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Array
 /**
  * Created by haxpor on 6/17/17.
  */
-class DamageBall(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
+class Fruit(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
 
     companion object {
         const val SPRITE_SIZE: Int = 16

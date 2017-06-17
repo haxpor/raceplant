@@ -6,19 +6,17 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
-import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
-import io.wasin.raceplant.entities.DamageBall
+import io.wasin.raceplant.entities.Fruit
 import io.wasin.raceplant.entities.Player
 import io.wasin.raceplant.entities.Seed
 import io.wasin.raceplant.entities.Tree
@@ -32,6 +30,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private val tilemap: TiledMap
     private val plantTileLayer: TiledMapTileLayer
+    private val stockpilesLayer: TiledMapTileLayer
     private val tmr: TiledMapRenderer
     private val tileSize: Float
 
@@ -52,7 +51,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var playerCameraUpdateRate: Float = 0.2f
 
     private var seeds: ArrayList<Seed> = ArrayList()
-    private var damageBalls: ArrayList<DamageBall> = ArrayList()
+    private var fruits: ArrayList<Fruit> = ArrayList()
     private var trees: ArrayList<Tree> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
@@ -68,6 +67,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     init {
         tilemap = TmxMapLoader().load("maps/mapA.tmx")
         plantTileLayer = tilemap.layers.get("plantslot") as TiledMapTileLayer
+        stockpilesLayer = tilemap.layers.get("stockpiles") as TiledMapTileLayer
         tmr = OrthogonalTiledMapRenderer(tilemap)
         tileSize = tilemap.properties.get("tilewidth", Float::class.java)
 
@@ -100,7 +100,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         seeds.add(Seed(Game.res.getTexture("seed")!!, 200f, 150f))
 
         // TODO: Remove this mocking up of placing damage ball for player 1 to use
-        damageBalls.add(DamageBall(Game.res.getTexture("damageball")!!, 200f, 200f))
+        fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
     }
 
     private fun setupGlyphs() {
@@ -252,14 +252,13 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 seeds.add(Seed(Game.res.getTexture("seed")!!, seedToPlacePos.x, seedToPlacePos.y))
             }
 
-
             player.state = Player.State.IDLE
         }
-        // place down damage ball if carrying
+        // place down fruit if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_DAMAGEBALL) {
 
             // calculate position to place down seed
-            damageBalls.add(DamageBall(Game.res.getTexture("damageball")!!,
+            fruits.add(Fruit(Game.res.getTexture("damageball")!!,
                     if (cindex == 0) player1CamTargetPosition.x else player2CamTargetPosition.x,
                     if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
             player.state = Player.State.IDLE
@@ -290,19 +289,19 @@ class Play(gsm: GameStateManager): GameState(gsm){
             }
         }
 
-        // update damageballs
-        for (i in damageBalls.count()-1 downTo 0 ) {
-            damageBalls[i].update(dt)
+        // update fruits
+        for (i in fruits.count()-1 downTo 0 ) {
+            fruits[i].update(dt)
 
             // check if player take the seed
             // also check if player has picked up something already
-            if (!player1.isCarry() && damageBalls[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+            if (!player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
                 player1.state = Player.State.CARRY_DAMAGEBALL
-                damageBalls.removeAt(i)
+                fruits.removeAt(i)
             }
-            else if (!player2.isCarry() && damageBalls[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+            else if (!player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
                 player2.state = Player.State.CARRY_DAMAGEBALL
-                damageBalls.removeAt(i)
+                fruits.removeAt(i)
             }
         }
 
@@ -372,7 +371,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // seeds
         seeds.forEach { it.draw(sb) }
         // damage balls
-        damageBalls.forEach { it.draw(sb) }
+        fruits.forEach { it.draw(sb) }
 
         // player
         player1.draw(sb)
@@ -403,7 +402,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // seeds
         seeds.forEach { it.draw(sb) }
         // damage balls
-        damageBalls.forEach { it.draw(sb) }
+        fruits.forEach { it.draw(sb) }
 
         // player
         player2.draw(sb)
