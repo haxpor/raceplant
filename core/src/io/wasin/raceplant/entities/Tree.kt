@@ -128,7 +128,7 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex:
         else if (state == State.GROW_STEP_3) {
             fruitGenerationTimeout -= dt
 
-            val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(growthTimeout.toInt())
+            val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(fruitGenerationTimeout.toInt())
             timeleftGlyph.setText(font, "$seconds")
 
             if (fruitGenerationTimeout < 0f) {
