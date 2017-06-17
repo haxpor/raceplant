@@ -124,4 +124,14 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     fun increaseTreePlanted() {
         treePlanted++
     }
+
+    fun isCarry(): Boolean {
+        if (state == State.CARRY_SEED ||
+                state == State.CARRY_DAMAGEBALL) {
+            return true
+        }
+        else {
+            return false
+        }
+    }
 }

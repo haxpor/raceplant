@@ -248,16 +248,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
     override fun update(dt: Float) {
         handleInput(dt)
 
+
         // update seeds
         for (i in seeds.count()-1 downTo 0 ) {
             seeds[i].update(dt)
 
             // check if player take the seed
-            if (seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+            if (!player1.isCarry() && seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
                 player1.state = Player.State.CARRY_SEED
                 seeds.removeAt(i)
             }
-            else if (seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+            else if (!player2.isCarry() && seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
                 player2.state = Player.State.CARRY_SEED
                 seeds.removeAt(i)
             }
@@ -268,11 +269,12 @@ class Play(gsm: GameStateManager): GameState(gsm){
             damageBalls[i].update(dt)
 
             // check if player take the seed
-            if (damageBalls[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+            // also check if player has picked up something already
+            if (!player1.isCarry() && damageBalls[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
                 player1.state = Player.State.CARRY_DAMAGEBALL
                 damageBalls.removeAt(i)
             }
-            else if (damageBalls[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+            else if (!player2.isCarry() && damageBalls[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
                 player2.state = Player.State.CARRY_DAMAGEBALL
                 damageBalls.removeAt(i)
             }
