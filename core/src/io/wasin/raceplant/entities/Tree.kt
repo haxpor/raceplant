@@ -10,7 +10,7 @@ import java.text.DecimalFormat
 /**
  * Created by haxpor on 6/17/17.
  */
-class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, fruitGeneratedCallback: ((Tree) -> Unit)?): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
+class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex: Int, tileRowIndex: Int, fruitGeneratedCallback: ((Tree) -> Unit)?): Sprite(texture, SPRITE_WIDTH, SPRITE_HEIGHT) {
 
     companion object {
         const val SPRITE_WIDTH: Int = 32
@@ -34,6 +34,10 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, fruitGenerate
 
     private var fruitGenerationTimeout: Float = Settings.FRUIT_GENERATION_COOLDOWN.toFloat()
     private var fruitGenerationCallback: ((Tree) -> Unit)? = fruitGeneratedCallback
+
+    // tile index for tree that is planted on
+    val tileColIndex: Int = tileColIndex
+    val tileRowIndex: Int = tileRowIndex
 
     enum class State {
         GROW_STEP_1,
@@ -73,9 +77,7 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, fruitGenerate
         // randomize to flipx for its whole life time
         randomFlipX = MathUtils.randomBoolean()
     }
-
-    constructor(texture: Texture, font: BitmapFont): this(texture, font, 0f, 0f, null) {}
-
+    
     fun update(dt: Float) {
         animationTimer += dt
 
