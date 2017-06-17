@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
@@ -15,6 +16,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.Sort
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
 import io.wasin.raceplant.entities.*
@@ -32,6 +34,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val stockpilesLayer: TiledMapTileLayer
     private val tmr: TiledMapRenderer
     private val tileSize: Float
+    private val playerSize: Float
 
     lateinit private var player1Cam: OrthographicCamera
     lateinit private var player1Viewport: ExtendViewport
@@ -60,6 +63,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
     private var player2ScoreGlyph: GlyphLayout = GlyphLayout()
 
+    private var neededSortEntities: ArrayList<SortSprite> = ArrayList()
+
     companion object {
         const val PLAYER_MOVE_SPEED = 50.0f
         const val PLAYER_CAM_AHEAD_OFFSET = 30f  // ahead distance to move player's camera at
@@ -86,6 +91,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
         setupPlayer2()
 
         setupGlyphs()
+
+        // set player size, used for sort entities that need to be sorted for z-order
+        playerSize = player1.height
 
         // TODO: Remove these mocking ups when done
         player1.x = 50f
@@ -448,6 +456,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2Cam.position.x = MathUtils.round(10f * player2Cam.position.x) / 10f
         player2Cam.position.y = MathUtils.round(10f * player2Cam.position.y) / 10f
         player2Cam.update()
+
+        // add all entities that need sorting according to z-order (y-position in this case)
+        // relavent is buckets, seeds, fruit, trees, and players
+        neededSortEntities.clear()
+        buckets.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+        seeds.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+        fruits.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+        trees.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+        neededSortEntities.add(SortSprite(player1, player1.y - playerSize))
+        neededSortEntities.add(SortSprite(player2, player2.y - playerSize))
+        neededSortEntities.sortByDescending { it.zOrder }
     }
 
     override fun render() {
@@ -496,22 +515,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // draw anything else for player 1
         sb.begin()
 
-        // tree
-        trees.forEach { it.draw(sb) }
-        // seeds
-        seeds.forEach { it.draw(sb) }
-        // damage balls
-        fruits.forEach { it.draw(sb) }
-        // buckets
-        buckets.forEach { it.draw(sb) }
+        // trees, seeds, fruits, buckets, and players are drew by this
+        neededSortEntities.forEach { it.sprite.draw(sb) }
         // waterdrops
         waterdrops.forEach { it.draw(sb) }
-
-        // player
-        player1.draw(sb)
-
-        // opponent
-        player2.draw(sb)
 
         // floating text
         floatingTexts.forEach { it.render(sb) }
@@ -534,22 +541,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // draw anything else for player 2
         sb.begin()
 
-        // tree
-        trees.forEach { it.draw(sb) }
-        // seeds
-        seeds.forEach { it.draw(sb) }
-        // damage balls
-        fruits.forEach { it.draw(sb) }
-        // buckets
-        buckets.forEach { it.draw(sb) }
+        // trees, seeds, fruits, buckets, and players are drew by this
+        neededSortEntities.forEach { it.sprite.draw(sb) }
         // waterdrops
         waterdrops.forEach { it.draw(sb) }
-
-        // player
-        player2.draw(sb)
-
-        // opponent
-        player1.draw(sb)
 
         // floating text
         floatingTexts.forEach { it.render(sb) }
