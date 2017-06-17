@@ -13,6 +13,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.viewport.ExtendViewport
@@ -314,10 +315,15 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2.update(dt)
 
         // update player 1 and 2 camera
+        // also round the camera's position to avoid line bleeding problem of tilemap
         player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
+        player1Cam.position.x = MathUtils.round(10f * player1Cam.position.x) / 10f
+        player1Cam.position.y = MathUtils.round(10f * player1Cam.position.y) / 10f
         player1Cam.update()
 
         player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
+        player2Cam.position.x = MathUtils.round(10f * player2Cam.position.x) / 10f
+        player2Cam.position.y = MathUtils.round(10f * player2Cam.position.y) / 10f
         player2Cam.update()
     }
 
