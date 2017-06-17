@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -48,7 +49,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private var separatorTextureRegion: TextureRegion
     private var scorehudTextureRegion: TextureRegion
-    private var playerCameraUpdateRate: Float = 0.2f
+    private var playerCameraUpdateRate: Float = 0.15f
 
     private var seeds: ArrayList<Seed> = ArrayList()
     private var fruits: ArrayList<Fruit> = ArrayList()
