@@ -118,8 +118,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     private fun setupGlyphs() {
-        player1ScoreGlyph.setText(font, "${player1.treePlanted}")
-        player2ScoreGlyph.setText(font, "${player2.treePlanted}")
+        player1ScoreGlyph.setText(font, "${player1.fruitCollected}")
+        player2ScoreGlyph.setText(font, "${player2.fruitCollected}")
     }
 
     private fun setupPlayer1Camera() {
@@ -288,10 +288,46 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // place down fruit if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_FRUIT) {
 
-            // calculate position to place down seed
-            fruits.add(Fruit(Game.res.getTexture("damageball")!!,
-                    if (cindex == 0) player1CamTargetPosition.x else player2CamTargetPosition.x,
-                    if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
+            // calculate position to place fruit on tile
+            // this position is used to check against stockpile tile
+            val fruitToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
+                Vector2(player2CamTargetPosition.x, player2CamTargetPosition.y)
+
+            // check seed against tile whether to add trees
+            val (col, row) = convertPositionToTilePosition(fruitToPlacePos)
+            var cell = stockpilesLayer.getCell(col, row)
+
+            Gdx.app.log("Play", "fruit is placed down at $col,$row")
+
+            // if seed collides with the stockpile tile then ...
+            // 1. increase score for that player
+            // 2. make that fruit disappear
+            // 3. show floating text for +1 score
+            if (cell != null && cell.tile != null) {
+                Gdx.app.log("Play", "fruit placed at $col,$row")
+
+                val stockpileSlotPos = convertTileIndexIntoPosition(col, row)
+                // 1.
+                player.increaseCollectedFruit()
+                if (player == player1) {
+                    player1ScoreGlyph.setText(font, "${player.fruitCollected}")
+                }
+                else if (player == player2) {
+                    player2ScoreGlyph.setText(font, "${player.fruitCollected}")
+                }
+
+                // 2.
+                fruits.add(Fruit(Game.res.getTexture("damageball")!!, fruitToPlacePos.x, fruitToPlacePos.y, true))
+
+                // 3.
+                floatingTexts.add(FloatingText("+1", fruitToPlacePos.x, fruitToPlacePos.y))
+            }
+            // otherwise place the fruit on the tile normally
+            else {
+                // calculate position to place down fruit
+                fruits.add(Fruit(Game.res.getTexture("damageball")!!, fruitToPlacePos.x, fruitToPlacePos.y))
+            }
+
             player.state = Player.State.IDLE
         }
         // place down bucket if carrying full bucket
@@ -357,7 +393,6 @@ class Play(gsm: GameStateManager): GameState(gsm){
     override fun update(dt: Float) {
         handleInput(dt)
 
-
         // update seeds
         for (i in seeds.count()-1 downTo 0 ) {
             seeds[i].update(dt)
@@ -379,12 +414,15 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
             // check if player take the seed
             // also check if player has picked up something already
-            if (!player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+            if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
                 player1.state = Player.State.CARRY_FRUIT
                 fruits.removeAt(i)
             }
-            else if (!player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+            else if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
                 player2.state = Player.State.CARRY_FRUIT
+                fruits.removeAt(i)
+            }
+            else if (!fruits[i].isAlive) {
                 fruits.removeAt(i)
             }
         }
@@ -494,7 +532,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // score hud - player 2
         sb.draw(scorehudTextureRegion, hudCam.viewportWidth/2 + 2f, hudCam.viewportHeight - scorehudTextureRegion.regionHeight, hudCam.viewportWidth/2f, scorehudTextureRegion.regionHeight.toFloat())
         // score hud - player 2's score
-        font.draw(sb, player1ScoreGlyph, hudCam.viewportWidth/4*3 - player2ScoreGlyph.width/2, hudCam.viewportHeight - player2ScoreGlyph.height/2)
+        font.draw(sb, player2ScoreGlyph, hudCam.viewportWidth/4*3 - player2ScoreGlyph.width/2, hudCam.viewportHeight - player2ScoreGlyph.height/2)
         // draw separator
         sb.draw(separatorTextureRegion, hudCam.viewportWidth/2-separatorTextureRegion.regionWidth/2, 0f)
 

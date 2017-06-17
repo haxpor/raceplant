@@ -39,6 +39,9 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
     // public variables
     var state: State = State.IDLE
     var treePlanted: Int = 0
+        private set
+    var fruitCollected: Int = 0
+        private set
 
     // internal operation
     private var faceRight: Boolean = true
@@ -147,6 +150,10 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
 
     fun increaseTreePlanted() {
         treePlanted++
+    }
+
+    fun increaseCollectedFruit() {
+        fruitCollected++
     }
 
     fun isCarry(): Boolean {

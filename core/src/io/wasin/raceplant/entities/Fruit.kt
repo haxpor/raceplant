@@ -9,15 +9,24 @@ import com.badlogic.gdx.utils.Array
 /**
  * Created by haxpor on 6/17/17.
  */
-class Fruit(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
+class Fruit(texture: Texture, x: Float, y: Float, aliveToScore: Boolean = false): Sprite(texture, SPRITE_SIZE, SPRITE_SIZE) {
 
     companion object {
         const val SPRITE_SIZE: Int = 16
+        const val EFFECT_DURATION: Float = 2.0f
     }
 
     // animation
     private var idleAnimation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
+
+    // create it then score right away? (from input in constructure)
+    private var aliveToScore: Boolean = aliveToScore
+    private var targetScale: Float = 1.5f
+    private var effectTimer: Float = 0.0f
+
+    var isAlive: Boolean = true
+    var isMarkedAsCollected: Boolean = aliveToScore
 
     init {
         // populate animations
@@ -38,13 +47,27 @@ class Fruit(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, 
     constructor(texture: Texture): this(texture, 0f, 0f) {}
 
     fun update(dt: Float) {
-        animationTimer += dt
+        if (isAlive) {
+            animationTimer += dt
 
-        // set texture region
-        var currentFrameRegion = idleAnimation.getKeyFrame(animationTimer)
+            if (aliveToScore) {
+                effectTimer += dt
 
-        if (currentFrameRegion != null) {
-            setRegion(currentFrameRegion!!)
+                val progress = effectTimer / EFFECT_DURATION
+                setScale(progress + 1.0f)
+                setAlpha(1.0f - progress)
+
+                if (effectTimer > EFFECT_DURATION) {
+                    isAlive = false
+                }
+            }
+
+            // set texture region
+            var currentFrameRegion = idleAnimation.getKeyFrame(animationTimer)
+
+            if (currentFrameRegion != null) {
+                setRegion(currentFrameRegion!!)
+            }
         }
     }
 }
