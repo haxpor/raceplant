@@ -14,7 +14,7 @@ class WaterDrop(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SI
     companion object {
         const val SPRITE_SIZE: Int = 32
     }
-
+    
     private var aliveTimeout: Float = 5f
     var isAlive: Boolean = true
         private set
