@@ -6,9 +6,11 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
@@ -19,6 +21,7 @@ import io.wasin.raceplant.Game
 import io.wasin.raceplant.entities.DamageBall
 import io.wasin.raceplant.entities.Player
 import io.wasin.raceplant.entities.Seed
+import io.wasin.raceplant.entities.Tree
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 
@@ -27,9 +30,10 @@ import io.wasin.raceplant.handlers.GameStateManager
  */
 class Play(gsm: GameStateManager): GameState(gsm){
 
-    private var tilemap: TiledMap
-    private var tmr: TiledMapRenderer
-    private var tileSize: Float
+    private val tilemap: TiledMap
+    private val plantTileLayer: TiledMapTileLayer
+    private val tmr: TiledMapRenderer
+    private val tileSize: Float
 
     lateinit private var player1Cam: OrthographicCamera
     lateinit private var player1Viewport: ExtendViewport
@@ -49,6 +53,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private var seeds: ArrayList<Seed> = ArrayList()
     private var damageBalls: ArrayList<DamageBall> = ArrayList()
+    private var trees: ArrayList<Tree> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -62,6 +67,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     init {
         tilemap = TmxMapLoader().load("maps/mapA.tmx")
+        plantTileLayer = tilemap.layers.get("plantslot") as TiledMapTileLayer
         tmr = OrthogonalTiledMapRenderer(tilemap)
         tileSize = tilemap.properties.get("tilewidth", Float::class.java)
 
@@ -90,10 +96,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
 
         // TODO: Remove this mocking up of seed when done
-        val seed = Seed(Game.res.getTexture("seed")!!)
-        seed.x = 150f
-        seed.y = 150f
-        seeds.add(seed)
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 150f, 150f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 200f, 150f))
 
         // TODO: Remove this mocking up of placing damage ball for player 1 to use
         damageBalls.add(DamageBall(Game.res.getTexture("damageball")!!, 200f, 200f))
@@ -223,10 +227,32 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // place down seed if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_SEED) {
 
-            // calculate position to place down seed
-            seeds.add(Seed(Game.res.getTexture("seed")!!,
-                    if (cindex == 0) player1CamTargetPosition.x else player2CamTargetPosition.x,
-                    if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
+            // calculate position to place seed on tile
+            // this position is used to check against plant slot tile
+            val seedToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
+                Vector2(player2CamTargetPosition.x, player2CamTargetPosition.y)
+
+            // check seed against tile whether to add trees
+            val (col, row) = convertPositionToTilePosition(seedToPlacePos)
+            var cell = plantTileLayer.getCell(col, row)
+
+            Gdx.app.log("Play", "seeds is placed down at $col,$row")
+
+            // if seed collides with the plant-slot tile then remove that seed
+            if (cell != null && cell.tile != null) {
+                Gdx.app.log("Play", "Seeds planted at $col,$row")
+
+                val plantSlotPos = convertTileIndexIntoPosition(col, row)
+                val tree = Tree(Game.res.getTexture("tree")!!, plantSlotPos.x, plantSlotPos.y)
+                trees.add(tree)
+            }
+                // otherwise place the seed on the tile normally
+            else {
+                // calculate position to place down seed
+                seeds.add(Seed(Game.res.getTexture("seed")!!, seedToPlacePos.x, seedToPlacePos.y))
+            }
+
+
             player.state = Player.State.IDLE
         }
         // place down damage ball if carrying
@@ -279,6 +305,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 damageBalls.removeAt(i)
             }
         }
+
+        // update trees
+        trees.forEach { it.update(dt) }
 
         // update players
         player1.update(dt)
@@ -338,6 +367,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // draw anything else for player 1
         sb.begin()
 
+        // tree
+        trees.forEach { it.draw(sb) }
         // seeds
         seeds.forEach { it.draw(sb) }
         // damage balls
@@ -367,6 +398,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // draw anything else for player 2
         sb.begin()
 
+        // tree
+        trees.forEach { it.draw(sb) }
         // seeds
         seeds.forEach { it.draw(sb) }
         // damage balls
@@ -418,5 +451,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
         }
 
         return newPosition
+    }
+
+    private fun convertPositionToTilePosition(pos: Vector2): Pair<Int, Int> {
+        val col = Math.floor( pos.x.toDouble() / tileSize).toInt()
+        val row = Math.floor( pos.y.toDouble() / tileSize).toInt()
+
+        // TODO: I know, this line smells quite a lot, should be better way to avoid creating a new object every return...
+        return Pair(col, row)
+    }
+
+    private fun convertTileIndexIntoPosition(col: Int, row: Int): Vector2 {
+        return Vector2(col * tileSize, row * tileSize + tileSize/2.3f)
     }
 }

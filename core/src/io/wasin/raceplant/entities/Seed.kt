@@ -21,7 +21,7 @@ class Seed(texture: Texture, x: Float, y: Float): Sprite(texture, SPRITE_SIZE, S
 
     init {
         // populate animations
-        val tmpFrames = TextureRegion.split(texture, Player.SPRITE_SIZE, Player.SPRITE_SIZE)
+        val tmpFrames = TextureRegion.split(texture, Seed.SPRITE_SIZE, Seed.SPRITE_SIZE)
 
         // idle
         val idleFrames = Array<TextureRegion>()

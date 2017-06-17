@@ -43,6 +43,7 @@ class Game : ApplicationAdapter() {
         res.loadTexture("ui/seed.png", "seed")
         res.loadTexture("ui/scorehud.png", "scorehud")
         res.loadTexture("ui/damage-ball.png", "damageball")
+        res.loadTexture("ui/tree.png", "tree")
 
         // set up both controllers
         // WARNING: You have to have 2 controllers connected before the launch of the game
