@@ -20,6 +20,7 @@ import io.wasin.raceplant.Game
 import io.wasin.raceplant.entities.*
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
+import io.wasin.raceplant.handlers.Settings
 
 /**
  * Created by haxpor on 6/16/17.
@@ -53,6 +54,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var trees: ArrayList<Tree> = ArrayList()
     private var buckets: ArrayList<Bucket> = ArrayList()
     private var waterdrops: ArrayList<WaterDrop> = ArrayList()
+    private var floatingTexts: ArrayList<FloatingText> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -267,9 +269,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
                     if (cindex == 0) player1CamTargetPosition.y else player2CamTargetPosition.y))
             player.state = Player.State.IDLE
         }
-        // place down bucket if carrying
+        // place down bucket if carrying full bucket
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
-                (player.state == Player.State.CARRY_EMPTYBUCKET || player.state == Player.State.CARRY_FULLBUCKET)) {
+                player.state == Player.State.CARRY_FULLBUCKET) {
 
             // calculate position to place bucket on tile
             // this position is used to check against planted tree on tile
@@ -286,6 +288,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 if (colChk == col && rowChk == row) {
                     waterdrops.add(WaterDrop(Game.res.getTexture("waterdrop")!!, tree.x, tree.y))
 
+                    floatingTexts.add(FloatingText("-${Settings.WATER_REDUCE_TIME_DURATION}", tree.x, tree.y))
+                    tree.waterIt()
+
                     // water is used then show empty bucket
                     buckets.add(Bucket(Game.res.getTexture("bucket")!!, tree.x, tree.y, Bucket.State.EMPTY))
                     isFoundMatchingTree = true
@@ -299,6 +304,21 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y,
                         if (player.state == Player.State.CARRY_EMPTYBUCKET) Bucket.State.EMPTY else Bucket.State.FULL))
             }
+
+            player.state = Player.State.IDLE
+        }
+        // place down bucket if carrying empty bucket
+        if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
+                player.state == Player.State.CARRY_EMPTYBUCKET) {
+
+            // calculate position to place bucket on tile
+            // this position is used to check against planted tree on tile
+            val bucketToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
+                Vector2(player2CamTargetPosition.x, player2CamTargetPosition.y)
+
+            // add bucket back with original state
+            buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y,
+                    if (player.state == Player.State.CARRY_EMPTYBUCKET) Bucket.State.EMPTY else Bucket.State.FULL))
 
             player.state = Player.State.IDLE
         }
@@ -381,6 +401,15 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
             if (!waterdrops[i].isAlive) {
                 waterdrops.removeAt(i)
+            }
+        }
+
+        // update floating text
+        for (i in floatingTexts.count()-1 downTo 0) {
+            floatingTexts[i].update(dt)
+
+            if (!floatingTexts[i].isAlive) {
+                floatingTexts.removeAt(i)
             }
         }
 
@@ -467,6 +496,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // opponent
         player2.draw(sb)
 
+        // floating text
+        floatingTexts.forEach { it.render(sb) }
+
         sb.end()
         // -- end of drawing section for player 1 --
     }
@@ -501,6 +533,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // opponent
         player1.draw(sb)
+
+        // floating text
+        floatingTexts.forEach { it.render(sb) }
 
         sb.end()
         // -- end of drawing section for player 2 --

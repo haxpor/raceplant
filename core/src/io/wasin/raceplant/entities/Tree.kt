@@ -152,4 +152,8 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float): Sprite(textu
         val remainingSeconds = seconds.rem(60)
         return Pair(minutes, remainingSeconds)
     }
+
+    fun waterIt() {
+        growthTimeout -= Settings.WATER_REDUCE_TIME_DURATION
+    }
 }

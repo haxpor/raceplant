@@ -11,5 +11,9 @@ class Settings {
         // all durations are in seconds
         const val GROWTH_TO_LEVEL_2_DURATION: Int = 15
         const val GROWTH_TO_LEVEL_3_DURATION: Int = 30
+
+        // effect that watering can reduce time wait in growing of the tree
+        // in seconds
+        const val WATER_REDUCE_TIME_DURATION: Int = 5
     }
 }
