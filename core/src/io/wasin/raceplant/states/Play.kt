@@ -36,6 +36,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val waterTilesLayer: TiledMapTileLayer
     private val tmr: TiledMapRenderer
     private val tileSize: Float
+    private val mapNumTileWidth: Int
+    private val mapNumTileHeight: Int
     private val playerSize: Float
 
     lateinit private var player1Cam: OrthographicCamera
@@ -90,6 +92,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         waterTilesLayer = tilemap.layers.get("water") as TiledMapTileLayer
         tmr = OrthogonalTiledMapRenderer(tilemap)
         tileSize = tilemap.properties.get("tilewidth", Float::class.java)
+        mapNumTileWidth = tilemap.properties.get("width", Int::class.java)
+        mapNumTileHeight = tilemap.properties.get("height", Int::class.java)
 
         val tex = Game.res.getTexture("separator")!!
         separatorTextureRegion = TextureRegion(tex, tex.width, tex.height)
@@ -591,11 +595,13 @@ class Play(gsm: GameStateManager): GameState(gsm){
             // update player 1 and 2 camera
             // also round the camera's position to avoid line bleeding problem of tilemap
             player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
+            boundCameraAndPlayerPosition(player1)
             player1Cam.position.x = MathUtils.round(10.5f * player1Cam.position.x) / 10.5f
             player1Cam.position.y = MathUtils.round(10.5f * player1Cam.position.y) / 10.5f
             player1Cam.update()
 
             player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
+            boundCameraAndPlayerPosition(player2)
             player2Cam.position.x = MathUtils.round(10.5f * player2Cam.position.x) / 10.5f
             player2Cam.position.y = MathUtils.round(10.5f * player2Cam.position.y) / 10.5f
             player2Cam.update()
@@ -610,6 +616,47 @@ class Play(gsm: GameStateManager): GameState(gsm){
             neededSortEntities.add(SortSprite(player1, player1.y - playerSize))
             neededSortEntities.add(SortSprite(player2, player2.y - playerSize))
             neededSortEntities.sortByDescending { it.zOrder }
+        }
+    }
+
+    private fun boundCameraAndPlayerPosition(player: Player) {
+        val mapWidth = tileSize * mapNumTileWidth
+        val mapHeight = tileSize * mapNumTileHeight
+
+        // select the proper camera to work with
+        val cam: OrthographicCamera = if (player == player1) player1Cam else player2Cam
+
+        // bound camera
+        // x
+        if (cam.position.x < cam.viewportWidth/2) {
+            cam.position.x = cam.viewportWidth/2
+
+            if (player.x < 0f) {
+                player.x = 0f
+            }
+        }
+        if (cam.position.x + cam.viewportWidth/2 > tileSize * mapNumTileWidth) {
+            cam.position.x = mapWidth - cam.viewportWidth/2
+
+            if (player.x + player.width> mapWidth) {
+                player.x = mapWidth - player.width
+            }
+        }
+
+        // y
+        if (cam.position.y < cam.viewportHeight/2) {
+            cam.position.y = cam.viewportHeight/2
+
+            if (player.y < 0f) {
+                player.y = 0f
+            }
+        }
+        if (cam.position.y + cam.viewportHeight/2 > tileSize * mapNumTileHeight) {
+            cam.position.y = mapHeight - cam.viewportHeight/2
+
+            if (player.y + player.width> mapHeight) {
+                player.y = mapHeight - player.width
+            }
         }
     }
 
