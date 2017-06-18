@@ -18,5 +18,8 @@ class Settings {
 
         // in seconds
         const val FRUIT_GENERATION_COOLDOWN: Int = 1//30
+
+        // in seconds
+        const val MATCH_TIME: Int = 180
     }
 }

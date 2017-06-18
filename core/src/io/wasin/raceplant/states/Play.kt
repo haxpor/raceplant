@@ -23,6 +23,7 @@ import io.wasin.raceplant.entities.*
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 import io.wasin.raceplant.handlers.Settings
+import java.text.DecimalFormat
 
 /**
  * Created by haxpor on 6/16/17.
@@ -45,11 +46,12 @@ class Play(gsm: GameStateManager): GameState(gsm){
     lateinit private var player1: Player
     lateinit private var player2: Player
 
-    private var player1CamTargetPosition: Vector3 = Vector3.Zero
-    private var player2CamTargetPosition: Vector3 = Vector3.Zero
+    private var player1CamTargetPosition: Vector3 = Vector3(0f,0f,0f)   // we need lerping of camera to be taken into effect immediately, thus not use Vector3.Zero
+    private var player2CamTargetPosition: Vector3 = Vector3(0f,0f,0f)   // we need lerping of camera to be taken into effect immediately, thus not use Vector3.Zero
 
     private var separatorTextureRegion: TextureRegion
     private var scorehudTextureRegion: TextureRegion
+    private var matchTimeHudTextureRegion: TextureRegion
     private var playerCameraUpdateRate: Float = 0.15f
 
     private var seeds: ArrayList<Seed> = ArrayList()
@@ -64,6 +66,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var player2ScoreGlyph: GlyphLayout = GlyphLayout()
 
     private var neededSortEntities: ArrayList<SortSprite> = ArrayList()
+
+    private var matchTimeout: Float = Settings.MATCH_TIME.toFloat()
+    private var matchRemainingTimeGlyph: GlyphLayout = GlyphLayout()
+    private var decimalFormat: DecimalFormat = DecimalFormat("#00")
+    private var isMatchOver: Boolean = false
+
+    private var matchResultLine1Glyph: GlyphLayout = GlyphLayout()
+    private var matchResultLine2Glyph: GlyphLayout = GlyphLayout()
 
     companion object {
         const val PLAYER_MOVE_SPEED = 50.0f
@@ -84,6 +94,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
         val scorehudTex = Game.res.getTexture("scorehud")!!
         scorehudTextureRegion = TextureRegion(scorehudTex, scorehudTex.width, scorehudTex.height)
 
+        val matchtimehudTex = Game.res.getTexture("matchui")!!
+        matchTimeHudTextureRegion = TextureRegion(matchtimehudTex, matchtimehudTex.width, matchtimehudTex.height)
+
         setupPlayer1Camera()
         setupPlayer2Camera()
 
@@ -95,14 +108,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // set player size, used for sort entities that need to be sorted for z-order
         playerSize = player1.height
 
+        initalizeMatch()
+    }
+
+    private fun initalizeMatch() {
         // TODO: Remove these mocking ups when done
         player1.x = 50f
         player1.y = 50f
-
         player1CamTargetPosition.set(player1.x, player1.y, 0f)
 
-        player2.x = 100f
-        player2.y = 100f
+        player2.x = 300f
+        player2.y = 300f
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
 
         // TODO: Remove this mocking up of seed when done
@@ -115,11 +131,19 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // TODO: Remove this mocking up of placing buckets for two player when we don't need it
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 220f, Bucket.State.EMPTY))
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.FULL))
+
+        // set inittial camera position to be at the center of the map, before lerping takes place
+        val centerTileMapX = tilemap.properties.get("width", Int::class.java) * tileSize / 2f
+        val centerTileMapY = tilemap.properties.get("height", Int::class.java) * tileSize / 2f
+        player1Cam.position.set(Vector3(centerTileMapX, centerTileMapY, 0f))
+        player2Cam.position.set(Vector3(centerTileMapX, centerTileMapY, 0f))
     }
 
     private fun setupGlyphs() {
         player1ScoreGlyph.setText(font, "${player1.fruitCollected}")
         player2ScoreGlyph.setText(font, "${player2.fruitCollected}")
+
+        matchRemainingTimeGlyph.setText(font, "" + convertSecondsToMinuteAndRemainingSeconds(matchTimeout.toInt()))
     }
 
     private fun setupPlayer1Camera() {
@@ -149,6 +173,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
     override fun handleInput(dt: Float) {
         handlePlayerInput(player1, dt)
         handlePlayerInput(player2, dt)
+    }
+
+    fun handleInputWhenMatchOver(dt: Float) {
+        // give privillege to player 1 to rematch
+        if (BBInput.isControllerPressed(0, BBInput.CONTROLLER_BUTTON_2)) {
+            // TODO: Reset the match and start again
+            restartMatch()
+        }
     }
 
     private fun handlePlayerInput(player: Player, dt: Float) {
@@ -402,130 +434,164 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     override fun update(dt: Float) {
-        handleInput(dt)
 
-        // update seeds
-        for (i in seeds.count()-1 downTo 0 ) {
-            seeds[i].update(dt)
+        // update match timeout
+        if (!isMatchOver) {
+            matchTimeout -= dt
 
-            // check if player take the seed
-            if (!player1.isCarry() && seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
-                player1.state = Player.State.CARRY_SEED
-                seeds.removeAt(i)
-            }
-            else if (!player2.isCarry() && seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
-                player2.state = Player.State.CARRY_SEED
-                seeds.removeAt(i)
-            }
-        }
+            val (mMiniutes, mSeconds) = convertSecondsToMinuteAndRemainingSeconds(matchTimeout.toInt())
+            matchRemainingTimeGlyph.setText(font, decimalFormat.format(mMiniutes) + ":" + decimalFormat.format(mSeconds))
 
-        // update fruits
-        for (i in fruits.count()-1 downTo 0 ) {
-            fruits[i].update(dt)
+            if (matchTimeout < 0f) {
+                isMatchOver = true
 
-            // check if player take the seed
-            // also check if player has picked up something already
-            if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
-                player1.state = Player.State.CARRY_FRUIT
-                fruits.removeAt(i)
-            }
-            else if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
-                player2.state = Player.State.CARRY_FRUIT
-                fruits.removeAt(i)
-            }
-            else if (!fruits[i].isAlive) {
-                fruits.removeAt(i)
-            }
-        }
-
-        // update buckets
-        for (i in buckets.count()-1 downTo 0) {
-            buckets[i].update(dt)
-
-            // check if player take the bucket
-            if (!player1.isCarry() && buckets[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
-
-                // it depends on the state of bucket
-                if (buckets[i].state == Bucket.State.EMPTY) {
-                    player1.state = Player.State.CARRY_EMPTYBUCKET
+                // set text to show as result
+                var textResult = ""
+                if (player1.fruitCollected > player2.fruitCollected) {
+                    textResult = "Player 1 Won!"
                 }
-                else if (buckets[i].state == Bucket.State.FULL) {
-                    player1.state = Player.State.CARRY_FULLBUCKET
+                else if (player1.fruitCollected < player2.fruitCollected) {
+                    textResult = "Player 2 Won!"
                 }
-
-                buckets.removeAt(i)
-            }
-            else if (!player2.isCarry() && buckets[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
-
-                // it depends on the state of bucket
-                if (buckets[i].state == Bucket.State.EMPTY) {
-                    player2.state = Player.State.CARRY_EMPTYBUCKET
+                else {
+                    textResult = "Match Tied"
                 }
-                else if (buckets[i].state == Bucket.State.FULL) {
-                    player2.state = Player.State.CARRY_FULLBUCKET
-                }
-
-                buckets.removeAt(i)
+                matchResultLine1Glyph.setText(font, textResult)
+                matchResultLine2Glyph.setText(font, "Press A to rematch")
             }
         }
 
-        // update waterdrops
-        for (i in waterdrops.count()-1 downTo 0) {
-            waterdrops[i].update(dt)
+        if (isMatchOver) {
+            Gdx.app.log("Play", "Match is over")
 
-            if (!waterdrops[i].isAlive) {
-                waterdrops.removeAt(i)
-            }
+            handleInputWhenMatchOver(dt)
         }
+        else {
+            handleInput(dt)
 
-        // update floating text
-        for (i in floatingTexts.count()-1 downTo 0) {
-            floatingTexts[i].update(dt)
+            // update seeds
+            for (i in seeds.count() - 1 downTo 0) {
+                seeds[i].update(dt)
 
-            if (!floatingTexts[i].isAlive) {
-                floatingTexts.removeAt(i)
+                // check if player take the seed
+                if (!player1.isCarry() && seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                    player1.state = Player.State.CARRY_SEED
+                    seeds.removeAt(i)
+                } else if (!player2.isCarry() && seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                    player2.state = Player.State.CARRY_SEED
+                    seeds.removeAt(i)
+                }
             }
+
+            // update fruits
+            for (i in fruits.count() - 1 downTo 0) {
+                fruits[i].update(dt)
+
+                // check if player take the seed
+                // also check if player has picked up something already
+                if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                    player1.state = Player.State.CARRY_FRUIT
+                    fruits.removeAt(i)
+                } else if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                    player2.state = Player.State.CARRY_FRUIT
+                    fruits.removeAt(i)
+                } else if (!fruits[i].isAlive) {
+                    fruits.removeAt(i)
+                }
+            }
+
+            // update buckets
+            for (i in buckets.count() - 1 downTo 0) {
+                buckets[i].update(dt)
+
+                // check if player take the bucket
+                if (!player1.isCarry() && buckets[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+
+                    // it depends on the state of bucket
+                    if (buckets[i].state == Bucket.State.EMPTY) {
+                        player1.state = Player.State.CARRY_EMPTYBUCKET
+                    } else if (buckets[i].state == Bucket.State.FULL) {
+                        player1.state = Player.State.CARRY_FULLBUCKET
+                    }
+
+                    buckets.removeAt(i)
+                } else if (!player2.isCarry() && buckets[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+
+                    // it depends on the state of bucket
+                    if (buckets[i].state == Bucket.State.EMPTY) {
+                        player2.state = Player.State.CARRY_EMPTYBUCKET
+                    } else if (buckets[i].state == Bucket.State.FULL) {
+                        player2.state = Player.State.CARRY_FULLBUCKET
+                    }
+
+                    buckets.removeAt(i)
+                }
+            }
+
+            // update waterdrops
+            for (i in waterdrops.count() - 1 downTo 0) {
+                waterdrops[i].update(dt)
+
+                if (!waterdrops[i].isAlive) {
+                    waterdrops.removeAt(i)
+                }
+            }
+
+            // update floating text
+            for (i in floatingTexts.count() - 1 downTo 0) {
+                floatingTexts[i].update(dt)
+
+                if (!floatingTexts[i].isAlive) {
+                    floatingTexts.removeAt(i)
+                }
+            }
+
+            // update trees
+            trees.forEach { it.update(dt) }
+
+            // update players
+            player1.update(dt)
+            player2.update(dt)
+
+            // update player 1 and 2 camera
+            // also round the camera's position to avoid line bleeding problem of tilemap
+            player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
+            player1Cam.position.x = MathUtils.round(10.5f * player1Cam.position.x) / 10.5f
+            player1Cam.position.y = MathUtils.round(10.5f * player1Cam.position.y) / 10.5f
+            player1Cam.update()
+
+            player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
+            player2Cam.position.x = MathUtils.round(10.5f * player2Cam.position.x) / 10.5f
+            player2Cam.position.y = MathUtils.round(10.5f * player2Cam.position.y) / 10.5f
+            player2Cam.update()
+
+            // add all entities that need sorting according to z-order (y-position in this case)
+            // relavent is buckets, seeds, fruit, trees, and players
+            neededSortEntities.clear()
+            buckets.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+            seeds.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+            fruits.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+            trees.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
+            neededSortEntities.add(SortSprite(player1, player1.y - playerSize))
+            neededSortEntities.add(SortSprite(player2, player2.y - playerSize))
+            neededSortEntities.sortByDescending { it.zOrder }
         }
-
-        // update trees
-        trees.forEach { it.update(dt) }
-
-        // update players
-        player1.update(dt)
-        player2.update(dt)
-
-        // update player 1 and 2 camera
-        // also round the camera's position to avoid line bleeding problem of tilemap
-        player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
-        player1Cam.position.x = MathUtils.round(10f * player1Cam.position.x) / 10f
-        player1Cam.position.y = MathUtils.round(10f * player1Cam.position.y) / 10f
-        player1Cam.update()
-
-        player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
-        player2Cam.position.x = MathUtils.round(10f * player2Cam.position.x) / 10f
-        player2Cam.position.y = MathUtils.round(10f * player2Cam.position.y) / 10f
-        player2Cam.update()
-
-        // add all entities that need sorting according to z-order (y-position in this case)
-        // relavent is buckets, seeds, fruit, trees, and players
-        neededSortEntities.clear()
-        buckets.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
-        seeds.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
-        fruits.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
-        trees.forEach { neededSortEntities.add(SortSprite(it, it.y - playerSize)) }
-        neededSortEntities.add(SortSprite(player1, player1.y - playerSize))
-        neededSortEntities.add(SortSprite(player2, player2.y - playerSize))
-        neededSortEntities.sortByDescending { it.zOrder }
     }
 
     override fun render() {
         // clear screen
+        Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         drawPlayer1Content()
         drawPlayer2Content()
 
         drawHud()
+
+        // if match is over then draw result over the game content
+        if (isMatchOver) {
+            drawMatchResult()
+        }
     }
 
     private fun drawHud() {
@@ -546,6 +612,30 @@ class Play(gsm: GameStateManager): GameState(gsm){
         font.draw(sb, player2ScoreGlyph, hudCam.viewportWidth/4*3 - player2ScoreGlyph.width/2, hudCam.viewportHeight - player2ScoreGlyph.height/2)
         // draw separator
         sb.draw(separatorTextureRegion, hudCam.viewportWidth/2-separatorTextureRegion.regionWidth/2, 0f)
+
+        drawMatchTimeRemainingHud()
+
+        sb.end()
+    }
+
+    private fun drawMatchTimeRemainingHud() {
+        sb.draw(matchTimeHudTextureRegion, hudCam.viewportWidth/2-matchTimeHudTextureRegion.regionWidth/2,
+                hudCam.viewportHeight - matchTimeHudTextureRegion.regionHeight)
+        font.draw(sb, matchRemainingTimeGlyph, hudCam.viewportWidth/2 - matchRemainingTimeGlyph.width/2,
+                hudCam.viewportHeight - matchTimeHudTextureRegion.regionHeight/2 + matchRemainingTimeGlyph.height/2)
+    }
+
+    private fun drawMatchResult() {
+        sb.projectionMatrix = hudCam.combined
+        // set viewport back to normal
+        Gdx.gl.glViewport(0,0,Gdx.graphics.width, Gdx.graphics.height)
+
+        sb.begin()
+
+        font.draw(sb, matchResultLine1Glyph, hudCam.viewportWidth/2 - matchResultLine1Glyph.width/2,
+                hudCam.viewportHeight/2 - matchResultLine1Glyph.height/2)
+        font.draw(sb, matchResultLine2Glyph, hudCam.viewportWidth/2 - matchResultLine2Glyph.width/2,
+                hudCam.viewportHeight/2 - matchResultLine1Glyph.height - 6f - matchResultLine2Glyph.height/2)
 
         sb.end()
     }
@@ -607,7 +697,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     override fun resize_user(width: Int, height: Int) {
-
+        player1Viewport.update(width/2, height)
+        player2Viewport.update(width/2, height)
     }
 
     // this function ignore if element value of direction vector is zero
@@ -650,5 +741,33 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private fun convertTileIndexIntoPosition(col: Int, row: Int): Vector2 {
         return Vector2(col * tileSize, row * tileSize + tileSize/2.3f)
+    }
+
+    private fun convertSecondsToMinuteAndRemainingSeconds(seconds: Int): Pair<Int, Int>  {
+        val minutes = Math.floor(seconds.toDouble() / 60.0).toInt()
+        val remainingSeconds = seconds.rem(60)
+        return Pair(minutes, remainingSeconds)
+    }
+
+    private fun restartMatch() {
+        matchTimeout = Settings.MATCH_TIME.toFloat()
+        isMatchOver = false
+
+        // remove all entities from array list
+        seeds.clear()
+        fruits.clear()
+        trees.clear()
+        buckets.clear()
+        waterdrops.clear()
+        floatingTexts.clear()
+        neededSortEntities.clear()
+
+        player1.resetState()
+        player2.resetState()
+
+        player1ScoreGlyph.setText(font, "${player1.fruitCollected}")
+        player2ScoreGlyph.setText(font, "${player2.fruitCollected}")
+
+        initalizeMatch()
     }
 }

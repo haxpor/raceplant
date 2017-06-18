@@ -167,4 +167,11 @@ class Player(id: Int, texture: Texture): Sprite(texture, SPRITE_SIZE, SPRITE_SIZ
             return false
         }
     }
+
+    fun resetState() {
+        fruitCollected = 0
+        treePlanted = 0
+        state = State.IDLE
+        faceRight()
+    }
 }
