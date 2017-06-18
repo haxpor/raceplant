@@ -47,6 +47,7 @@ class Game : ApplicationAdapter() {
         res.loadTexture("ui/bucket.png", "bucket")
         res.loadTexture("ui/waterdrop-effect.png", "waterdrop")
         res.loadTexture("ui/matchui.png", "matchui")
+        res.loadTexture("ui/waterfilled.png", "waterfilled")
 
         // set up both controllers
         // WARNING: You have to have 2 controllers connected before the launch of the game

@@ -33,6 +33,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val tilemap: TiledMap
     private val plantTileLayer: TiledMapTileLayer
     private val stockpilesLayer: TiledMapTileLayer
+    private val waterTilesLayer: TiledMapTileLayer
     private val tmr: TiledMapRenderer
     private val tileSize: Float
     private val playerSize: Float
@@ -60,6 +61,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private var buckets: ArrayList<Bucket> = ArrayList()
     private var waterdrops: ArrayList<WaterDrop> = ArrayList()
     private var floatingTexts: ArrayList<FloatingText> = ArrayList()
+    private var waterFilleds: ArrayList<WaterFilled> = ArrayList()
 
     private var font: BitmapFont = BitmapFont()
     private var player1ScoreGlyph: GlyphLayout = GlyphLayout()
@@ -85,6 +87,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         tilemap = TmxMapLoader().load("maps/mapA.tmx")
         plantTileLayer = tilemap.layers.get("plantslot") as TiledMapTileLayer
         stockpilesLayer = tilemap.layers.get("stockpiles") as TiledMapTileLayer
+        waterTilesLayer = tilemap.layers.get("water") as TiledMapTileLayer
         tmr = OrthogonalTiledMapRenderer(tilemap)
         tileSize = tilemap.properties.get("tilewidth", Float::class.java)
 
@@ -415,14 +418,37 @@ class Play(gsm: GameStateManager): GameState(gsm){
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
                 player.state == Player.State.CARRY_EMPTYBUCKET) {
 
-            // calculate position to place bucket on tile
-            // this position is used to check against planted tree on tile
+            // calculate position to place empty bucket on tile
+            // this position is used to check against stockpile tile
             val bucketToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
                 Vector2(player2CamTargetPosition.x, player2CamTargetPosition.y)
 
-            // add bucket back with original state
-            buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y,
-                    if (player.state == Player.State.CARRY_EMPTYBUCKET) Bucket.State.EMPTY else Bucket.State.FULL))
+            // check bucket against water tile
+            val (col, row) = convertPositionToTilePosition(bucketToPlacePos)
+            var cell = waterTilesLayer.getCell(col, row)
+
+            Gdx.app.log("Play", "empty bucket is placed down at $col,$row")
+
+            // if empty bucket collides with the water tile tile then ...
+            // 1. Add full bucket
+            // 2. Add WaterFilled effect
+            if (cell != null && cell.tile != null) {
+                Gdx.app.log("Play", "empty bucket placed at $col,$row")
+
+                // 1.
+                buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y, Bucket.State.FULL))
+
+                // 2.
+                waterFilleds.add(WaterFilled(Game.res.getTexture("waterfilled")!!, bucketToPlacePos.x, bucketToPlacePos.y))
+
+                // 3.
+                floatingTexts.add(FloatingText("Filled", bucketToPlacePos.x - Bucket.SPRITE_SIZE/2, bucketToPlacePos.y + Bucket.SPRITE_SIZE/2))
+            }
+            // otherwise place the fruit on the tile normally
+            else {
+                // calculate position to place down fruit
+                buckets.add(Bucket(Game.res.getTexture("bucket")!!, bucketToPlacePos.x, bucketToPlacePos.y, Bucket.State.EMPTY))
+            }
 
             player.state = Player.State.IDLE
         }
@@ -534,6 +560,15 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                 if (!waterdrops[i].isAlive) {
                     waterdrops.removeAt(i)
+                }
+            }
+
+            // update waterfilleds
+            for (i in waterFilleds.count() - 1 downTo 0) {
+                waterFilleds[i].update(dt)
+
+                if (!waterFilleds[i].isAlive) {
+                    waterFilleds.removeAt(i)
                 }
             }
 
@@ -656,6 +691,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // trees, seeds, fruits, buckets, and players are drew by this
         neededSortEntities.forEach { it.sprite.draw(sb) }
+        // waterfilled
+        waterFilleds.forEach { it.draw(sb) }
         // waterdrops
         waterdrops.forEach { it.draw(sb) }
 
@@ -682,6 +719,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         // trees, seeds, fruits, buckets, and players are drew by this
         neededSortEntities.forEach { it.sprite.draw(sb) }
+        // waterfilled
+        waterFilleds.forEach { it.draw(sb) }
         // waterdrops
         waterdrops.forEach { it.draw(sb) }
 
@@ -758,6 +797,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         fruits.clear()
         trees.clear()
         buckets.clear()
+        waterFilleds.clear()
         waterdrops.clear()
         floatingTexts.clear()
         neededSortEntities.clear()
