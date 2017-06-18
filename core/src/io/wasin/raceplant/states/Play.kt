@@ -1,6 +1,7 @@
 package io.wasin.raceplant.states
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -182,7 +183,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
     fun handleInputWhenMatchOver(dt: Float) {
         // give privillege to player 1 to rematch
         if (BBInput.isControllerPressed(0, BBInput.CONTROLLER_BUTTON_2)) {
-            // TODO: Reset the match and start again
+            val sfx = Game.res.getSound("select")!!
+            val sfxId = sfx.play()
+            sfx.setVolume(sfxId, 1.0f)
+
             restartMatch()
         }
     }
@@ -277,6 +281,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // place down seed if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_SEED) {
 
+            val hit = Game.res.getSound("place")!!
+            val hitId = hit.play()
+            hit.setVolume(hitId, 1.0f)
+
             // calculate position to place seed on tile
             // this position is used to check against plant slot tile
             val seedToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
@@ -314,6 +322,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
                                         it.x + MathUtils.random(-it.width / 2f, it.width / 2),
                                         it.y - MathUtils.random(0f, it.width / 2f))
                                 seeds.add(seed)
+
+                                val hit = Game.res.getSound("fruit-generated")!!
+                                val hitId = hit.play()
+                                hit.setVolume(hitId, 1.0f)
                             }
                     )
                     trees.add(tree)
@@ -334,6 +346,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         }
         // place down fruit if carrying
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) && player.state == Player.State.CARRY_FRUIT) {
+
+            val hit = Game.res.getSound("place")!!
+            val hitId = hit.play()
+            hit.setVolume(hitId, 1.0f)
 
             // calculate position to place fruit on tile
             // this position is used to check against stockpile tile
@@ -368,6 +384,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                 // 3.
                 floatingTexts.add(FloatingText("+1", fruitToPlacePos.x, fruitToPlacePos.y))
+
+                val sfx = Game.res.getSound("score")!!
+                val sfxId = sfx.play()
+                sfx.setVolume(sfxId, 1.0f)
             }
             // otherwise place the fruit on the tile normally
             else {
@@ -381,6 +401,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
                 player.state == Player.State.CARRY_FULLBUCKET) {
 
+            val hit = Game.res.getSound("place")!!
+            val hitId = hit.play()
+            hit.setVolume(hitId, 1.0f)
+
             // calculate position to place bucket on tile
             // this position is used to check against planted tree on tile
             val bucketToPlacePos = if (cindex == 0) Vector2(player1CamTargetPosition.x, player1CamTargetPosition.y) else
@@ -392,6 +416,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
             // search for all trees whether which one is exactly that col,row
             var isFoundMatchingTree = false
             for (tree in trees) {
+                // step 3 growth not going to take effect
+                if (tree.state == Tree.State.GROW_STEP_3) continue
+
                 val (colChk, rowChk) = convertPositionToTilePosition(Vector2(tree.x, tree.y))
                 if (colChk == col && rowChk == row) {
                     waterdrops.add(WaterDrop(Game.res.getTexture("waterdrop")!!, tree.x, tree.y))
@@ -402,6 +429,11 @@ class Play(gsm: GameStateManager): GameState(gsm){
                     // water is used then show empty bucket
                     buckets.add(Bucket(Game.res.getTexture("bucket")!!, tree.x, tree.y, Bucket.State.EMPTY))
                     isFoundMatchingTree = true
+
+                    val sfx = Game.res.getSound("water-tree")!!
+                    val sfxId = sfx.play()
+                    sfx.setVolume(sfxId, 1.0f)
+
                     break
                 }
             }
@@ -418,6 +450,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // place down bucket if carrying empty bucket
         if (BBInput.isControllerPressed(cindex, BBInput.CONTROLLER_BUTTON_1) &&
                 player.state == Player.State.CARRY_EMPTYBUCKET) {
+
+            val hit = Game.res.getSound("place")!!
+            val hitId = hit.play()
+            hit.setVolume(hitId, 1.0f)
 
             // calculate position to place empty bucket on tile
             // this position is used to check against stockpile tile
@@ -444,6 +480,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                 // 3.
                 floatingTexts.add(FloatingText("Filled", bucketToPlacePos.x - Bucket.SPRITE_SIZE/2, bucketToPlacePos.y + Bucket.SPRITE_SIZE/2))
+
+                val sfx = Game.res.getSound("waterfilled")!!
+                val sfxId = sfx.play()
+                sfx.setVolume(sfxId, 1.0f)
             }
             // otherwise place the fruit on the tile normally
             else {
@@ -485,6 +525,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 }
                 matchResultLine1Glyph.setText(font, textResult)
                 matchResultLine2Glyph.setText(font, "Press A to rematch")
+
+                val sfx = Game.res.getSound("win")!!
+                val sfxId = sfx.play()
+                sfx.setVolume(sfxId, 2.2f)
             }
         }
 
@@ -502,9 +546,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                 // check if player take the seed
                 if (!player1.isCarry() && seeds[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                    val hit = Game.res.getSound("place")!!
+                    val hitId = hit.play()
+                    hit.setVolume(hitId, 1.0f)
+
                     player1.state = Player.State.CARRY_SEED
                     seeds.removeAt(i)
                 } else if (!player2.isCarry() && seeds[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                    val hit = Game.res.getSound("place")!!
+                    val hitId = hit.play()
+                    hit.setVolume(hitId, 1.0f)
+
                     player2.state = Player.State.CARRY_SEED
                     seeds.removeAt(i)
                 }
@@ -517,9 +569,17 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 // check if player take the seed
                 // also check if player has picked up something already
                 if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player1.isCarry() && fruits[i].boundingRectangle.overlaps(player1.boundingRectangle)) {
+                    val hit = Game.res.getSound("place")!!
+                    val hitId = hit.play()
+                    hit.setVolume(hitId, 1.0f)
+
                     player1.state = Player.State.CARRY_FRUIT
                     fruits.removeAt(i)
                 } else if (fruits[i].isAlive && !fruits[i].isMarkedAsCollected && !player2.isCarry() && fruits[i].boundingRectangle.overlaps(player2.boundingRectangle)) {
+                    val hit = Game.res.getSound("place")!!
+                    val hitId = hit.play()
+                    hit.setVolume(hitId, 1.0f)
+
                     player2.state = Player.State.CARRY_FRUIT
                     fruits.removeAt(i)
                 } else if (!fruits[i].isAlive) {
@@ -536,8 +596,16 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                     // it depends on the state of bucket
                     if (buckets[i].state == Bucket.State.EMPTY) {
+                        val hit = Game.res.getSound("place")!!
+                        val hitId = hit.play()
+                        hit.setVolume(hitId, 1.0f)
+
                         player1.state = Player.State.CARRY_EMPTYBUCKET
                     } else if (buckets[i].state == Bucket.State.FULL) {
+                        val hit = Game.res.getSound("place")!!
+                        val hitId = hit.play()
+                        hit.setVolume(hitId, 1.0f)
+
                         player1.state = Player.State.CARRY_FULLBUCKET
                     }
 
@@ -546,8 +614,16 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
                     // it depends on the state of bucket
                     if (buckets[i].state == Bucket.State.EMPTY) {
+                        val hit = Game.res.getSound("place")!!
+                        val hitId = hit.play()
+                        hit.setVolume(hitId, 1.0f)
+
                         player2.state = Player.State.CARRY_EMPTYBUCKET
                     } else if (buckets[i].state == Bucket.State.FULL) {
+                        val hit = Game.res.getSound("place")!!
+                        val hitId = hit.play()
+                        hit.setVolume(hitId, 1.0f)
+
                         player2.state = Player.State.CARRY_FULLBUCKET
                     }
 

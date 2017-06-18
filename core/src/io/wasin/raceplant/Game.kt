@@ -49,6 +49,22 @@ class Game : ApplicationAdapter() {
         res.loadTexture("ui/matchui.png", "matchui")
         res.loadTexture("ui/waterfilled.png", "waterfilled")
 
+        res.loadSound("sound/place.wav", "place")
+        res.loadSound("sound/score.wav", "score")
+        res.loadSound("sound/fruit-generated.wav", "fruit-generated")
+        res.loadSound("sound/tree-grow-step.wav", "tree-grow-step")
+        res.loadSound("sound/select.wav", "select")
+        res.loadSound("sound/waterfilled.wav", "waterfilled")
+        res.loadSound("sound/water-tree.wav", "water-tree")
+        res.loadSound("sound/win.wav", "win")
+        res.loadMusic("sound/bg.mp3", "bg")
+
+        // set to play background music endlessly now
+        val bgMusic = res.getMusic("bg")!!
+        bgMusic.play()
+        bgMusic.volume = 0.2f
+        bgMusic.isLooping = true
+
         // set up both controllers
         // WARNING: You have to have 2 controllers connected before the launch of the game
         // to be able to recognize both of controllers
