@@ -119,25 +119,22 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     private fun initalizeMatch() {
-        // TODO: Remove these mocking ups when done
         player1.x = 50f
         player1.y = 50f
         player1CamTargetPosition.set(player1.x, player1.y, 0f)
 
-        player2.x = 300f
-        player2.y = 300f
+        player2.x = 50f
+        player2.y = 70f
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
 
-        // TODO: Remove this mocking up of seed when done
         seeds.add(Seed(Game.res.getTexture("seed")!!, 150f, 150f))
         seeds.add(Seed(Game.res.getTexture("seed")!!, 200f, 150f))
 
-        // TODO: Remove this mocking up of placing damage ball for player 1 to use
-        fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
+        //fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
 
         // TODO: Remove this mocking up of placing buckets for two player when we don't need it
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 220f, Bucket.State.EMPTY))
-        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.FULL))
+        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.EMPTY))
 
         // set inittial camera position to be at the center of the map, before lerping takes place
         val centerTileMapX = tilemap.properties.get("width", Int::class.java) * tileSize / 2f
@@ -606,6 +603,11 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2Cam.position.y = MathUtils.round(10.5f * player2Cam.position.y) / 10.5f
             player2Cam.update()
 
+            // bound position of other objects
+            buckets.forEach { boundSpritePosition(it) }
+            seeds.forEach { boundSpritePosition(it) }
+            fruit.forEach { boundSpritePosition(it)}
+
             // add all entities that need sorting according to z-order (y-position in this case)
             // relavent is buckets, seeds, fruit, trees, and players
             neededSortEntities.clear()
@@ -657,6 +659,27 @@ class Play(gsm: GameStateManager): GameState(gsm){
             if (player.y + player.width> mapHeight) {
                 player.y = mapHeight - player.width
             }
+        }
+    }
+
+    private fun boundSpritePosition(sprite: Sprite) {
+        val mapWidth = tileSize * mapNumTileWidth
+        val mapHeight = tileSize * mapNumTileHeight
+
+        // x
+        if (sprite.x < 0f) {
+            sprite.x = 0f
+        }
+        if (sprite.x + sprite.width > mapWidth) {
+            sprite.x = mapWidth - sprite.width
+        }
+
+        // y
+        if (sprite.y < 0f) {
+            sprite.y = 0f
+        }
+        if (sprite.y + sprite.height > mapHeight) {
+            sprite.y = mapHeight - sprite.height
         }
     }
 
