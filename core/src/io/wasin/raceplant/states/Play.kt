@@ -606,7 +606,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
             // bound position of other objects
             buckets.forEach { boundSpritePosition(it) }
             seeds.forEach { boundSpritePosition(it) }
-            fruit.forEach { boundSpritePosition(it)}
+            fruits.forEach { boundSpritePosition(it)}
 
             // add all entities that need sorting according to z-order (y-position in this case)
             // relavent is buckets, seeds, fruit, trees, and players
