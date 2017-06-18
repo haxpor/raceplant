@@ -101,8 +101,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         player1CamTargetPosition.set(player1.x, player1.y, 0f)
 
-        player2.x = 100f
-        player2.y = 100f
+        player2.x = 300f
+        player2.y = 300f
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
 
         // TODO: Remove this mocking up of seed when done
@@ -497,13 +497,13 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // update player 1 and 2 camera
         // also round the camera's position to avoid line bleeding problem of tilemap
         player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
-        player1Cam.position.x = MathUtils.round(10f * player1Cam.position.x) / 10f
-        player1Cam.position.y = MathUtils.round(10f * player1Cam.position.y) / 10f
+        player1Cam.position.x = MathUtils.round(10.5f * player1Cam.position.x) / 10.5f
+        player1Cam.position.y = MathUtils.round(10.5f * player1Cam.position.y) / 10.5f
         player1Cam.update()
 
         player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
-        player2Cam.position.x = MathUtils.round(10f * player2Cam.position.x) / 10f
-        player2Cam.position.y = MathUtils.round(10f * player2Cam.position.y) / 10f
+        player2Cam.position.x = MathUtils.round(10.5f * player2Cam.position.x) / 10.5f
+        player2Cam.position.y = MathUtils.round(10.5f * player2Cam.position.y) / 10.5f
         player2Cam.update()
 
         // add all entities that need sorting according to z-order (y-position in this case)
@@ -607,7 +607,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     override fun resize_user(width: Int, height: Int) {
-
+        player1Viewport.update(width/2, height)
+        player2Viewport.update(width/2, height)
     }
 
     // this function ignore if element value of direction vector is zero
