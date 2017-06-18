@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.*
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.utils.Array
+import io.wasin.raceplant.Game
 import io.wasin.raceplant.handlers.Settings
 import java.text.DecimalFormat
 
@@ -23,7 +24,8 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex:
     private var growStep3Animation: Animation<TextureRegion>
     private var animationTimer: Float = 0f
 
-    private var state: State = State.GROW_STEP_1
+    var state: State = State.GROW_STEP_1
+        private set
     private var randomFlipX: Boolean = false
 
     private var growthTimeout: Float = Settings.GROWTH_TO_LEVEL_2_DURATION.toFloat()
@@ -73,6 +75,8 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex:
         // place on input position
         this.x = x
         this.y = y
+
+        growIntoStep1()
 
         // randomize to flipx for its whole life time
         randomFlipX = MathUtils.randomBoolean()
@@ -131,7 +135,7 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex:
             val (minutes, seconds) = convertSecondsToMinuteAndRemainingSeconds(fruitGenerationTimeout.toInt())
             timeleftGlyph.setText(font, "$seconds")
 
-            if (fruitGenerationTimeout < 0f) {
+            if (fruitGenerationTimeout <= 0f) {
                 // restart generation again
                 fruitGenerationTimeout = Settings.FRUIT_GENERATION_COOLDOWN.toFloat()
 
@@ -145,16 +149,28 @@ class Tree(texture: Texture, font: BitmapFont, x: Float, y: Float, tileColIndex:
     }
 
     fun growIntoStep1() {
+        val hit = Game.res.getSound("tree-grow-step")!!
+        val hitId = hit.play()
+        hit.setVolume(hitId, 1.0f)
+
         state = State.GROW_STEP_1
         growthTimeout = Settings.GROWTH_TO_LEVEL_2_DURATION.toFloat()
     }
 
     fun growIntoStep2() {
+        val hit = Game.res.getSound("tree-grow-step")!!
+        val hitId = hit.play()
+        hit.setVolume(hitId, 1.0f)
+
         state = State.GROW_STEP_2
         growthTimeout = Settings.GROWTH_TO_LEVEL_3_DURATION.toFloat()
     }
 
     fun growIntoStep3() {
+        val hit = Game.res.getSound("tree-grow-step")!!
+        val hitId = hit.play()
+        hit.setVolume(hitId, 1.0f)
+
         state = State.GROW_STEP_3
     }
 
