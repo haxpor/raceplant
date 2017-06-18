@@ -45,8 +45,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     lateinit private var player1: Player
     lateinit private var player2: Player
 
-    private var player1CamTargetPosition: Vector3 = Vector3.Zero
-    private var player2CamTargetPosition: Vector3 = Vector3.Zero
+    private var player1CamTargetPosition: Vector3 = Vector3(0f,0f,0f)   // we need lerping of camera to be taken into effect immediately, thus not use Vector3.Zero
+    private var player2CamTargetPosition: Vector3 = Vector3(0f,0f,0f)   // we need lerping of camera to be taken into effect immediately, thus not use Vector3.Zero
 
     private var separatorTextureRegion: TextureRegion
     private var scorehudTextureRegion: TextureRegion
@@ -98,7 +98,6 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // TODO: Remove these mocking ups when done
         player1.x = 50f
         player1.y = 50f
-
         player1CamTargetPosition.set(player1.x, player1.y, 0f)
 
         player2.x = 300f
@@ -115,6 +114,12 @@ class Play(gsm: GameStateManager): GameState(gsm){
         // TODO: Remove this mocking up of placing buckets for two player when we don't need it
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 220f, Bucket.State.EMPTY))
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.FULL))
+
+        // set inittial camera position to be at the center of the map, before lerping takes place
+        val centerTileMapX = tilemap.properties.get("width", Int::class.java) * tileSize / 2f
+        val centerTileMapY = tilemap.properties.get("height", Int::class.java) * tileSize / 2f
+        player1Cam.position.set(Vector3(centerTileMapX, centerTileMapY, 0f))
+        player2Cam.position.set(Vector3(centerTileMapX, centerTileMapY, 0f))
     }
 
     private fun setupGlyphs() {
