@@ -21,7 +21,10 @@ This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 h
 * Java Runtime at least version 1.6+
 * Xbox360 controllers for two players (due to the game doesn't offer button mapping as configuration so if you use different brand of controller, button might be changed. But all in all, you can use other controller but keep in mind it's not tested).
 * <font color="red" style="font-weight: bold">-</font> Keyboard to control player is not support yet.
-More infomation, please go to [http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html](http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html) (but can use Z button to manually restart the match if needed)
+
+# More Infomation
+
+Please go to [http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html](http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html) (but can use Z button to manually restart the match if needed)
 
 # License
 
