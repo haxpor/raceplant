@@ -502,6 +502,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     override fun update(dt: Float) {
 
+        if (BBInput.isPressed(BBInput.BUTTON1)) {
+            restartMatch()
+        }
+
         // update match timeout
         if (!isMatchOver) {
             matchTimeout -= dt
