@@ -4,8 +4,23 @@ A hot-seat two players compete each other for higher score in collecting fruit f
 
 This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 hours.
 
+## Gameplay Part 1
 ![gameplay part 1 gif](http://i.imgur.com/HRbnrTz.gif)
+
+## Gameplay Part 2
 ![gameplay part 2 gif](http://i.imgur.com/68HoyG9.gif)
+
+## Giving Stuff to Opponent
+![give stuff to opponent](http://i.imgur.com/xzJ5hZc.gif)
+
+## Collecting Fruit
+![collecting fruit](http://i.imgur.com/B7c8J2G.gif)
+
+## Fill Water into Bucket
+![fill water into bucket](http://i.imgur.com/6EfdAfb.gif)
+
+## Growth of Tree to Final Stage
+![growth of tree to final stage](http://i.imgur.com/jeayq4f.gif)
 
 # Tools
 
