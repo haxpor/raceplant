@@ -1,3 +1,5 @@
+<a href="https://github.com/haxpor/donate"><img src="https://img.shields.io/badge/$-donate-ff69b4.svg?maxAge=2592000&amp;style=flat" alt="donate"></a>
+
 # CIGA Game Jam 2017
 
 A hot-seat two players compete each other for higher score in collecting fruit from the tree. Planting, water and collecting. No matter who wins, we all wins.
