@@ -41,6 +41,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val mapNumTileHeight: Int
     private val playerSize: Float
 
+    private val factorAvoidLineBleeding: Float
+
     lateinit private var player1Cam: OrthographicCamera
     lateinit private var player1Viewport: ExtendViewport
 
@@ -96,6 +98,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         mapNumTileWidth = tilemap.properties.get("width", Int::class.java)
         mapNumTileHeight = tilemap.properties.get("height", Int::class.java)
 
+        factorAvoidLineBleeding = getAvoidLineBleedingScreenFactor()
+
         val tex = Game.res.getTexture("separator")!!
         separatorTextureRegion = TextureRegion(tex, tex.width, tex.height)
 
@@ -120,22 +124,29 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     private fun initalizeMatch() {
-        player1.x = 50f
-        player1.y = 50f
+        player1.x = 720f
+        player1.y = 720f
         player1CamTargetPosition.set(player1.x, player1.y, 0f)
 
-        player2.x = 50f
-        player2.y = 70f
+        player2.x = 760f
+        player2.y = 720f
         player2CamTargetPosition.set(player2.x, player2.y, 0f)
 
-        seeds.add(Seed(Game.res.getTexture("seed")!!, 150f, 150f))
-        seeds.add(Seed(Game.res.getTexture("seed")!!, 200f, 150f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 650f, 750f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 600f, 710f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 630f, 700f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 660f, 690f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 690f, 700f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 620f, 700f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 640f, 690f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 610f, 700f))
+        seeds.add(Seed(Game.res.getTexture("seed")!!, 590f, 700f))
 
         //fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
 
         // TODO: Remove this mocking up of placing buckets for two player when we don't need it
-        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 220f, Bucket.State.EMPTY))
-        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 70f, 250f, Bucket.State.EMPTY))
+        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 720f, 690f, Bucket.State.EMPTY))
+        buckets.add(Bucket(Game.res.getTexture("bucket")!!, 700f, 690f, Bucket.State.EMPTY))
 
         // set inittial camera position to be at the center of the map, before lerping takes place
         val centerTileMapX = tilemap.properties.get("width", Int::class.java) * tileSize / 2f
@@ -173,6 +184,19 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private fun setupPlayer2() {
         player2 = Player(2, Game.res.getTexture("player2")!!)
+    }
+
+    private fun getAvoidLineBleedingScreenFactor(): Float {
+        val horizontal = Gdx.app.graphics.width.toFloat()
+        val vertical = Gdx.app.graphics.height.toFloat()
+
+        if (horizontal / vertical <= 1.334f) {
+            return 10f
+        }
+        else {
+            // wide-screen
+            return 10.5f
+        }
     }
 
     override fun handleInput(dt: Float) {
@@ -673,14 +697,14 @@ class Play(gsm: GameStateManager): GameState(gsm){
             // also round the camera's position to avoid line bleeding problem of tilemap
             player1Cam.position.lerp(player1CamTargetPosition, playerCameraUpdateRate)
             boundCameraAndPlayerPosition(player1)
-            player1Cam.position.x = MathUtils.round(10.5f * player1Cam.position.x) / 10.5f
-            player1Cam.position.y = MathUtils.round(10.5f * player1Cam.position.y) / 10.5f
+            player1Cam.position.x = MathUtils.round(factorAvoidLineBleeding * player1Cam.position.x) / factorAvoidLineBleeding
+            player1Cam.position.y = MathUtils.round(factorAvoidLineBleeding * player1Cam.position.y) / factorAvoidLineBleeding
             player1Cam.update()
 
             player2Cam.position.lerp(player2CamTargetPosition, playerCameraUpdateRate)
             boundCameraAndPlayerPosition(player2)
-            player2Cam.position.x = MathUtils.round(10.5f * player2Cam.position.x) / 10.5f
-            player2Cam.position.y = MathUtils.round(10.5f * player2Cam.position.y) / 10.5f
+            player2Cam.position.x = MathUtils.round(factorAvoidLineBleeding * player2Cam.position.x) / factorAvoidLineBleeding
+            player2Cam.position.y = MathUtils.round(factorAvoidLineBleeding * player2Cam.position.y) / factorAvoidLineBleeding
             player2Cam.update()
 
             // bound position of other objects
