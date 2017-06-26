@@ -8,7 +8,9 @@ import com.badlogic.gdx.maps.tiled.renderers.BatchTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.graphics.g2d.Batch.*
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.GdxRuntimeException
 
 /**
  * Created by haxpor on 6/26/17.
@@ -17,7 +19,45 @@ class MinimapOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRender
 
     init {
         // set to use minimap shader
-        batch.shader = ShaderProgram(Gdx.files.internal("shader/minimap_vertex.glsl"), Gdx.files.internal("shader/minimap_fragment.glsl"))
+        val shader = ShaderProgram(Gdx.files.internal("shader/minimap_vertex.glsl"), Gdx.files.internal("shader/minimap_fragment.glsl"))
+        if (!shader.isCompiled) throw GdxRuntimeException("Couldn't compile shader: " + shader.log)
+
+        // otherwise it's ok
+        batch.shader = shader
+    }
+
+    override fun render() {
+        // draw tiles that we want it to be in grayscale
+        batch.shader.setAttributef("a_applyGrayScale", 1.0f, 1.0f, 1.0f, 1.0f)
+        beginRender()
+        for (layer in map.layers) {
+            if (layer.isVisible && layer.name != "water" && layer.name != "plantslot") {
+                if (layer is TiledMapTileLayer) {
+                    renderTileLayer(layer)
+                } else if (layer is TiledMapImageLayer) {
+                    renderImageLayer(layer)
+                } else {
+                    renderObjects(layer)
+                }
+            }
+        }
+        endRender()
+
+        // draw tiles that we want to have normal color
+        batch.shader.setAttributef("a_applyGrayScale", 0.0f, 0.0f, 0.0f, 0.0f)
+        beginRender()
+        map.layers.filter { it.name == "water" || it.name == "plantslot" }.let {
+            for (layer in it) {
+                if (layer is TiledMapTileLayer) {
+                    renderTileLayer(layer)
+                } else if (layer is TiledMapImageLayer) {
+                    renderImageLayer(layer)
+                } else {
+                    renderObjects(layer)
+                }
+            }
+        }
+        endRender()
     }
 
     override fun renderTileLayer(layer: TiledMapTileLayer?) {
