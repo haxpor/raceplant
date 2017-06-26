@@ -30,8 +30,8 @@ class MinimapOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRender
         // draw tiles that we want it to be in grayscale
         batch.shader.setAttributef("a_applyGrayScale", 1.0f, 1.0f, 1.0f, 1.0f)
         beginRender()
-        for (layer in map.layers) {
-            if (layer.isVisible && layer.name != "water" && layer.name != "plantslot") {
+        map.layers.filter { it.isVisible && it.name != "water" && it.name != "plantslot" }.let {
+            for (layer in it) {
                 if (layer is TiledMapTileLayer) {
                     renderTileLayer(layer)
                 } else if (layer is TiledMapImageLayer) {
@@ -46,7 +46,7 @@ class MinimapOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRender
         // draw tiles that we want to have normal color
         batch.shader.setAttributef("a_applyGrayScale", 0.0f, 0.0f, 0.0f, 0.0f)
         beginRender()
-        map.layers.filter { it.name == "water" || it.name == "plantslot" }.let {
+        map.layers.filter { it.isVisible && it.name == "water" || it.name == "plantslot" }.let {
             for (layer in it) {
                 if (layer is TiledMapTileLayer) {
                     renderTileLayer(layer)
