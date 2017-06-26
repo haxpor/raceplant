@@ -39,6 +39,20 @@ This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 h
 * Xbox360 controllers for two players (due to the game doesn't offer button mapping as configuration so if you use different brand of controller, button might be changed. But all in all, you can use other controller but keep in mind it's not tested).
 * <font color="red" style="font-weight: bold">-</font> Keyboard to control player is not support yet.
 
+# Key Control
+
+## Xbox360 Controler
+
+* Use `Left analog`, or `D-Pad` to move player around
+* Move on top of stuff i.e. bucket, fruit, seed in order to carry it
+* `Left analog` for direction + `B` to place down stuff you're carrying to the tile as directed by analog direction
+* When match ends, and you're at score screen, player 1 only can press `A` to restart the match.
+ 
+## Keyboard
+
+* `Z` to immediately restart the match
+
+
 # More Infomation
 
 Please go to [http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html](http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html) (but can use Z button to manually restart the match if needed)
