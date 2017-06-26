@@ -13,7 +13,7 @@ import com.badlogic.gdx.math.Vector3
 /**
  * Created by haxpor on 6/26/17.
  */
-class AlphaOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRenderer(map) {
+class MinimapOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRenderer(map) {
 
     init {
         // set to use minimap shader
@@ -27,11 +27,11 @@ class AlphaOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRenderer
         val batchColor = batch.color
         val color = Color.toFloatBits(batchColor.r, batchColor.g, batchColor.b, batchColor.a * layer.opacity)
 
-        val layerWidth = layer.getWidth()
-        val layerHeight = layer.getHeight()
+        val layerWidth = layer.width
+        val layerHeight = layer.height
 
-        val layerTileWidth = layer.getTileWidth() * unitScale
-        val layerTileHeight = layer.getTileHeight() * unitScale
+        val layerTileWidth = layer.tileWidth * unitScale
+        val layerTileHeight = layer.tileHeight * unitScale
 
         val col1 = Math.max(0, (viewBounds.x / layerTileWidth).toInt())
         val col2 = Math.min(layerWidth, ((viewBounds.x + viewBounds.width + layerTileWidth) / layerTileWidth).toInt())

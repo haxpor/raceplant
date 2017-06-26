@@ -16,5 +16,5 @@ void main() {
     float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
     vec3 grayScale = vec3(gray);
 
-    gl_FragColor = vec4(grayScale, color.a * (256.0/255.0) * 0.7);
+    gl_FragColor = vec4(grayScale, color.a * (256.0/255.0) * 0.9);
 }

@@ -1,7 +1,6 @@
 package io.wasin.raceplant.states
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.controllers.mappings.Xbox
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
@@ -9,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.TextureRegion
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
@@ -18,11 +16,10 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.utils.Sort
 import com.badlogic.gdx.utils.viewport.ExtendViewport
 import io.wasin.raceplant.Game
 import io.wasin.raceplant.entities.*
-import io.wasin.raceplant.handlers.AlphaOrthogonalTiledMapRenderer
+import io.wasin.raceplant.handlers.MinimapOrthogonalTiledMapRenderer
 import io.wasin.raceplant.handlers.BBInput
 import io.wasin.raceplant.handlers.GameStateManager
 import io.wasin.raceplant.handlers.Settings
@@ -38,7 +35,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val stockpilesLayer: TiledMapTileLayer
     private val waterTilesLayer: TiledMapTileLayer
     private val tmr: TiledMapRenderer
-    private val minimapTmr: AlphaOrthogonalTiledMapRenderer
+    private val minimapTmr: MinimapOrthogonalTiledMapRenderer
     private val tileSize: Float
     private val mapNumTileWidth: Int
     private val mapNumTileHeight: Int
@@ -54,7 +51,10 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     lateinit private var player1MinimapCam: OrthographicCamera
     lateinit private var player1MinimapViewport: ExtendViewport
+    lateinit private var player2MinimapCam: OrthographicCamera
+    lateinit private var player2MinimapViewport: ExtendViewport
     private var player1MinimapDraw: Boolean = false
+    private var player2MinimapDraw: Boolean = false
 
     lateinit private var player1: Player
     lateinit private var player2: Player
@@ -93,6 +93,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         const val PLAYER_MOVE_SPEED = 50.0f
         const val PLAYER_CAM_AHEAD_OFFSET = 30f  // ahead distance to move player's camera at
         const val CONTROLLER_DEADZONE_VALUE = 0.3f
+        const val MINIMAP_SIZE_PERCENTAGE = 0.35f   // relative to screen width
+        const val MINIMAP_ZOOM_FACTOR = 8f
     }
 
     init {
@@ -101,7 +103,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
         stockpilesLayer = tilemap.layers.get("stockpiles") as TiledMapTileLayer
         waterTilesLayer = tilemap.layers.get("water") as TiledMapTileLayer
         tmr = OrthogonalTiledMapRenderer(tilemap)
-        minimapTmr = AlphaOrthogonalTiledMapRenderer(tilemap)
+        minimapTmr = MinimapOrthogonalTiledMapRenderer(tilemap)
         tileSize = tilemap.properties.get("tilewidth", Float::class.java)
         mapNumTileWidth = tilemap.properties.get("width", Int::class.java)
         mapNumTileHeight = tilemap.properties.get("height", Int::class.java)
@@ -123,7 +125,8 @@ class Play(gsm: GameStateManager): GameState(gsm){
         setupPlayer1()
         setupPlayer2()
 
-        setupPlaye1MinimapCamera()
+        setupPlayer1MinimapCamera()
+        setupPlayer2MinimapCamera()
 
         setupGlyphs()
 
@@ -154,7 +157,6 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         //fruits.add(Fruit(Game.res.getTexture("damageball")!!, 200f, 200f))
 
-        // TODO: Remove this mocking up of placing buckets for two player when we don't need it
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 720f, 690f, Bucket.State.EMPTY))
         buckets.add(Bucket(Game.res.getTexture("bucket")!!, 700f, 690f, Bucket.State.EMPTY))
 
@@ -196,12 +198,24 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player2 = Player(2, Game.res.getTexture("player2")!!)
     }
 
-    private fun setupPlaye1MinimapCamera() {
+    private fun setupPlayer1MinimapCamera() {
+        val minimapSize: Int = Math.round(Gdx.graphics.width/2 * MINIMAP_SIZE_PERCENTAGE)
+
         player1MinimapCam = OrthographicCamera()
-        player1MinimapCam.setToOrtho(false, Game.V_WIDTH/2, Game.V_HEIGHT)
+        player1MinimapCam.setToOrtho(false, minimapSize.toFloat(), minimapSize.toFloat())
         player1MinimapCam.update()
 
-        player1MinimapViewport = ExtendViewport(Game.V_WIDTH/2, Game.V_HEIGHT, player1MinimapCam)
+        player1MinimapViewport = ExtendViewport(minimapSize.toFloat(), minimapSize.toFloat(), player1MinimapCam)
+    }
+
+    private fun setupPlayer2MinimapCamera() {
+        val minimapSize: Int = Math.round(Gdx.graphics.width/2 * MINIMAP_SIZE_PERCENTAGE)
+
+        player2MinimapCam = OrthographicCamera()
+        player2MinimapCam.setToOrtho(false, minimapSize.toFloat(), minimapSize.toFloat())
+        player2MinimapCam.update()
+
+        player2MinimapViewport = ExtendViewport(minimapSize.toFloat(), minimapSize.toFloat(), player1MinimapCam)
     }
 
     private fun getAvoidLineBleedingScreenFactor(): Float {
@@ -258,10 +272,16 @@ class Play(gsm: GameStateManager): GameState(gsm){
             if (cindex == 0) {
                 player1MinimapDraw = true
             }
+            else if (cindex == 1) {
+                player2MinimapDraw = true
+            }
         }
         else  {
             if (cindex == 0) {
                 player1MinimapDraw = false
+            }
+            else if (cindex == 1) {
+                player2MinimapDraw = false
             }
         }
 
@@ -738,8 +758,13 @@ class Play(gsm: GameStateManager): GameState(gsm){
             player2Cam.position.y = MathUtils.round(factorAvoidLineBleeding * player2Cam.position.y) / factorAvoidLineBleeding
             player2Cam.update()
 
-            player1MinimapCam.position.x = player1Cam.position.x
-            player1MinimapCam.position.y = player1Cam.position.y
+            player1MinimapCam.position.set(player1Cam.position)
+            boundMinimapCamera(player1MinimapCam)
+            player1MinimapCam.update()
+
+            player2MinimapCam.position.set(player2Cam.position)
+            boundMinimapCamera(player2MinimapCam)
+            player2MinimapCam.update()
 
             // bound position of other objects
             buckets.forEach { boundSpritePosition(it) }
@@ -775,7 +800,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 player.x = 0f
             }
         }
-        if (cam.position.x + cam.viewportWidth/2 > tileSize * mapNumTileWidth) {
+        if (cam.position.x + cam.viewportWidth/2 > mapWidth) {
             cam.position.x = mapWidth - cam.viewportWidth/2
 
             if (player.x + player.width> mapWidth) {
@@ -791,12 +816,34 @@ class Play(gsm: GameStateManager): GameState(gsm){
                 player.y = 0f
             }
         }
-        if (cam.position.y + cam.viewportHeight/2 > tileSize * mapNumTileHeight) {
+        if (cam.position.y + cam.viewportHeight/2 > mapHeight) {
             cam.position.y = mapHeight - cam.viewportHeight/2
 
             if (player.y + player.width> mapHeight) {
                 player.y = mapHeight - player.width
             }
+        }
+    }
+
+    private fun boundMinimapCamera(cam: OrthographicCamera) {
+        val mapWidth = tileSize * mapNumTileWidth
+        val mapHeight = tileSize * mapNumTileHeight
+
+        // bound camera
+        // x
+        if (cam.position.x < cam.viewportWidth/2 * MINIMAP_ZOOM_FACTOR) {
+            cam.position.x = cam.viewportWidth/2 * MINIMAP_ZOOM_FACTOR
+        }
+        if (cam.position.x + cam.viewportWidth/2 * MINIMAP_ZOOM_FACTOR > mapWidth) {
+            cam.position.x = mapWidth - cam.viewportWidth/2 * MINIMAP_ZOOM_FACTOR
+        }
+
+        // y
+        if (cam.position.y < cam.viewportHeight/2 * MINIMAP_ZOOM_FACTOR) {
+            cam.position.y = cam.viewportHeight/2 * MINIMAP_ZOOM_FACTOR
+        }
+        if (cam.position.y + cam.viewportHeight/2 * MINIMAP_ZOOM_FACTOR > mapHeight) {
+            cam.position.y = mapHeight - cam.viewportHeight/2 * MINIMAP_ZOOM_FACTOR
         }
     }
 
@@ -917,8 +964,11 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
     private fun drawPlayer1Minimap() {
         sb.projectionMatrix = player1MinimapCam.combined
-        player1MinimapCam.zoom = 4f
-        player1MinimapCam.update()
+        player1MinimapCam.zoom = MINIMAP_ZOOM_FACTOR
+
+        // draw minimap content at the bottom right of player's screen
+        val minimapSize: Int = Math.round(Gdx.graphics.width/2 * MINIMAP_SIZE_PERCENTAGE)
+        Gdx.gl.glViewport(0, 0, minimapSize, minimapSize)
 
         sb.begin()
 
@@ -969,6 +1019,41 @@ class Play(gsm: GameStateManager): GameState(gsm){
 
         sb.end()
         // -- end of drawing section for player 2 --
+
+        if (player2MinimapDraw) {
+            drawPlayer2Minimap()
+        }
+    }
+
+    private fun drawPlayer2Minimap() {
+        sb.projectionMatrix = player2MinimapCam.combined
+        player2MinimapCam.zoom = MINIMAP_ZOOM_FACTOR
+
+        // draw minimap content at the bottom right of player's screen
+        val minimapSize: Int = Math.round(Gdx.graphics.width/2 * MINIMAP_SIZE_PERCENTAGE)
+        Gdx.gl.glViewport(Gdx.graphics.width-minimapSize, 0, minimapSize, minimapSize)
+
+        sb.begin()
+
+        minimapTmr.setView(player2MinimapCam)
+        minimapTmr.render()
+
+        sb.end()
+
+        // draw anything else for player 2
+        sb.begin()
+
+        // trees, seeds, fruits, buckets, and players are drew by this
+        neededSortEntities.forEach { it.sprite.draw(sb) }
+        // waterfilled
+        waterFilleds.forEach { it.draw(sb) }
+        // waterdrops
+        waterdrops.forEach { it.draw(sb) }
+
+        // floating text
+        floatingTexts.forEach { it.render(sb) }
+
+        sb.end()
     }
 
     override fun dispose() {
@@ -979,7 +1064,9 @@ class Play(gsm: GameStateManager): GameState(gsm){
         player1Viewport.update(width/2, height)
         player2Viewport.update(width/2, height)
 
-        player1MinimapViewport.update(width/2, height)
+        val minimapSize:Int = Math.round(width/2 * MINIMAP_SIZE_PERCENTAGE)
+        player1MinimapViewport.update(minimapSize, minimapSize)
+        player2MinimapViewport.update(minimapSize, minimapSize)
     }
 
     // this function ignore if element value of direction vector is zero
