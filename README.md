@@ -46,7 +46,8 @@ This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 h
 * Use `Left analog`, or `D-Pad` to move player around
 * Move on top of stuff i.e. bucket, fruit, seed in order to carry it
 * `Left analog` for direction + `B` to place down stuff you're carrying to the tile as directed by analog direction
-* When match ends, and you're at score screen, player 1 only can press `A` to restart the match.
+* When match ends, and you're at score screen, player 1 only can press `A` to restart the match
+* Hold `Left Bumper` button to show minimap 
  
 ## Keyboard
 
