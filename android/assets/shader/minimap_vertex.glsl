@@ -3,6 +3,7 @@ attribute vec4 a_color;
 attribute vec2 a_texCoord0;
 
 uniform mat4 u_projTrans;
+uniform vec2 u_applyGrayScale;
 
 varying vec4 v_color;
 varying vec2 v_texCoords;

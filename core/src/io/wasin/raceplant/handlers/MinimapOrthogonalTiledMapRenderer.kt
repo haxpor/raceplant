@@ -8,7 +8,10 @@ import com.badlogic.gdx.maps.tiled.renderers.BatchTiledMapRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.graphics.g2d.Batch.*
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
+import com.badlogic.gdx.maps.MapLayer
+import com.badlogic.gdx.maps.tiled.TiledMapImageLayer
 import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.utils.GdxRuntimeException
 
 /**
  * Created by haxpor on 6/26/17.
@@ -17,7 +20,63 @@ class MinimapOrthogonalTiledMapRenderer(map: TiledMap): OrthogonalTiledMapRender
 
     init {
         // set to use minimap shader
-        batch.shader = ShaderProgram(Gdx.files.internal("shader/minimap_vertex.glsl"), Gdx.files.internal("shader/minimap_fragment.glsl"))
+        val shader = ShaderProgram(Gdx.files.internal("shader/minimap_vertex.glsl"), Gdx.files.internal("shader/minimap_fragment.glsl"))
+        if (!shader.isCompiled) throw GdxRuntimeException("Couldn't compile shader: " + shader.log)
+
+        // otherwise it's ok
+        batch.shader = shader
+    }
+
+    override fun render() {
+        // draw tiles that we want it to be in grayscale
+        // optimized a little by not separating draw call into two as a need to set attribute for each type of layer
+        // it's no need as we don't have different drawing mechanism for both
+        beginRender()
+        batch.shader.setUniformf("u_applyGrayScale", 1.0f, 1.0f)
+        map.layers["floor"].let {
+            if (it.isVisible) {
+                renderLayer(it)
+            }
+        }
+        endRender()
+
+        // draw tiles that it's not grayscale and need colorize
+        beginRender()
+        batch.shader.setUniformf("u_applyGrayScale", 0.0f, 3.0f)
+        map.layers["stockpiles"].let {
+            if (it.isVisible) {
+                renderLayer(it)
+            }
+        }
+        endRender()
+
+        beginRender()
+        batch.shader.setUniformf("u_applyGrayScale", 0.0f, 2.0f)
+        map.layers["water"].let {
+            if (it.isVisible) {
+                renderLayer(it)
+            }
+        }
+        endRender()
+
+        beginRender()
+        batch.shader.setUniformf("u_applyGrayScale", 0.0f, 4.0f)
+        map.layers["plantslot"].let {
+            if (it.isVisible) {
+                renderLayer(it)
+            }
+        }
+        endRender()
+    }
+
+    private fun renderLayer(layer: MapLayer) {
+        if (layer is TiledMapTileLayer) {
+            renderTileLayer(layer)
+        } else if (layer is TiledMapImageLayer) {
+            renderImageLayer(layer)
+        } else {
+            renderObjects(layer)
+        }
     }
 
     override fun renderTileLayer(layer: TiledMapTileLayer?) {
