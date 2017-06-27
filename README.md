@@ -57,6 +57,8 @@ This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 h
 
 Please go to [http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html](http://blog.wasin.io/blog/2017/06/19/postmortem-raceplant-ciga-game-jam-2017.html) (but can use Z button to manually restart the match if needed)
 
+Also can follow devlog for future updates at [https://haxpor.itch.io/race-plant](https://haxpor.itch.io/race-plant).
+
 # License
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-sa/4.0/)  
