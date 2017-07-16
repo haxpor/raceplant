@@ -4,11 +4,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.Disposable
 
 /**
  * Created by haxpor on 6/18/17.
  */
-class FloatingText(text: String, startingPosX: Float, startingPosY: Float) {
+class FloatingText(text: String, startingPosX: Float, startingPosY: Float): Disposable {
     private var font: BitmapFont = BitmapFont()
     private var glyph: GlyphLayout = GlyphLayout()
     var text: String = text
@@ -53,5 +54,9 @@ class FloatingText(text: String, startingPosX: Float, startingPosY: Float) {
     fun render(sb: SpriteBatch) {
         font.setColor(1f, 1f, 1f, alpha)
         font.draw(sb, glyph, pos.x, pos.y)
+    }
+
+    override fun dispose() {
+        font.dispose()
     }
 }

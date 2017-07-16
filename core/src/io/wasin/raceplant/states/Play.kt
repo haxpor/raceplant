@@ -34,7 +34,7 @@ class Play(gsm: GameStateManager): GameState(gsm){
     private val plantTileLayer: TiledMapTileLayer
     private val stockpilesLayer: TiledMapTileLayer
     private val waterTilesLayer: TiledMapTileLayer
-    private val tmr: TiledMapRenderer
+    private val tmr: OrthogonalTiledMapRenderer
     private val minimapTmr: MinimapOrthogonalTiledMapRenderer
     private val tileSize: Float
     private val mapNumTileWidth: Int
@@ -1057,7 +1057,11 @@ class Play(gsm: GameStateManager): GameState(gsm){
     }
 
     override fun dispose() {
-
+        floatingTexts.forEach { it.dispose() }
+        tilemap.dispose()
+        tmr.dispose()
+        minimapTmr.dispose()
+        font.dispose()
     }
 
     override fun resize_user(width: Int, height: Int) {
