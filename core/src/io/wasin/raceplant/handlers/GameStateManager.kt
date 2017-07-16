@@ -1,5 +1,6 @@
 package io.wasin.raceplant.handlers
 
+import com.badlogic.gdx.utils.Disposable
 import io.wasin.raceplant.Game
 import io.wasin.raceplant.states.*
 
@@ -9,14 +10,10 @@ import java.util.Stack
  * Created by haxpor on 5/14/17.
  */
 
-class GameStateManager(game: Game){
+class GameStateManager(game: Game): Disposable {
     var game: Game
         private set
     private var gameStates: Stack<GameState>
-
-    private var isCurrentStateClear: Boolean = false
-    private var currentStateCystalsAmount: Int = 0
-    private var currentMaxCrystalAmount: Int = 0
 
     init {
         this.game = game
@@ -48,6 +45,7 @@ class GameStateManager(game: Game){
     }
 
     fun setState(state: Int) {
+        this.gameStates.forEach { it.dispose() }
         this.gameStates.clear()
         this.pushState(state)
     }
@@ -61,19 +59,7 @@ class GameStateManager(game: Game){
         g.dispose()
     }
 
-    fun setCurrentActiveLevelAsGameOver() {
-        isCurrentStateClear = false
-        currentStateCystalsAmount = 0
-        currentMaxCrystalAmount = 0
-    }
-
-    fun setCurrentActiveLevelAsClear(crystals: Int, maxCrystals: Int) {
-        isCurrentStateClear = true
-        currentStateCystalsAmount = crystals
-        currentMaxCrystalAmount = maxCrystals
-    }
-
-    fun resetPreviousActiveLevelState() {
-        setCurrentActiveLevelAsGameOver()
+    override fun dispose() {
+        gameStates.forEach { it.dispose() }
     }
 }
