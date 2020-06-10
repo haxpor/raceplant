@@ -37,7 +37,7 @@ This game is made solo during CIGA game jam 2017 in Shenzhen, China; within 48 h
 
 * Java Runtime at least version 1.6+
 * Xbox360 controllers for two players (due to the game doesn't offer button mapping as configuration so if you use different brand of controller, button might be changed. But all in all, you can use other controller but keep in mind it's not tested).
-* <font color="red" style="font-weight: bold">-</font> Keyboard to control player is not support yet.
+* <font color="red" style="font-weight: bold">-</font> Keyboard to control player is **not** support yet.
 
 # Key Control
 
